@@ -11,7 +11,9 @@ colormatch.extract(__dirname + '/flower.jpg', function(err, data){
     console.log('data', data);
 
     assert.ok(data.length === 24);
+    assert.ok(data[0].hex);
     assert.ok(data[0].percent);
+    assert.ok(data[0].pixels);
     assert.ok(data[0].rgb);
 
 });
