@@ -32,7 +32,8 @@ module.exports = {
                 } else {
 
                     // clean up histogram
-                    var histogram = stdout.trim().replace(/^[^\s]+(.*)[^\s]+$/m, '$1').split('\n').pop();
+                    var histogram = stdout.trim().replace(/^[^\s]+(.*)[^\s]+$/m, '$1').split('\n');
+                    histogram.pop();
 
                     // read unique colors
                     var colors = [];
@@ -54,20 +55,20 @@ module.exports = {
 
                         // push colors
                         if (match){
-                            var count = parseInt(match[1], 10);
+                            var pixels = parseInt(match[1], 10);
                             colors.push({
                                 hex     : match[3],
                                 rgb     : match[2].split(',').map(function(x){return parseInt(x)}),
-                                count   : count
+                                pixels  : pixels
                             });
-                            total += count;
+                            total += pixels;
                         }
 
                     });
 
                     // calculate pixel percentage
                     colors.forEach(function(color){
-                        color.percentage = Math.round(((color.count/total)*100)*100)/100;
+                        color.percent = Math.round(((color.pixels/total)*100)*100)/100;
                     });
 
                     // done
