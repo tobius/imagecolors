@@ -4,7 +4,7 @@ var im = require('imagemagick');
 module.exports = {
 
     /**
-     * extract the top 24 colors of an image file
+     * extract prominent colors from an image file
      *
      * Usage:
      *
