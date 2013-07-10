@@ -17,8 +17,17 @@ A node module that extracts colors from an image using the color quantization al
 // colormatch
 var colormatch = require('colormatch');
 
-// extract
+// usage: colormatch.extract(image_path [, color_count], callback);
+
+// extract 24 colors (default if none provided)
 colormatch.extract('flower.jpg', function(err, colors){
+    if (!err){
+        console.log(colors);
+    }
+});
+
+// extract 1-24 colors (showing 15)
+colormatch.extract('flower.jpg', 15, function(err, colors){
     if (!err){
         console.log(colors);
     }

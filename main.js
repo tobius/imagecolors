@@ -9,20 +9,34 @@ module.exports = {
      * Usage:
      *
      * var colormatch = require('colormatch');
+     *
+     * // 24 colors
      * var colors = colormatch.extract('photo.jpg', function(err, data){
      *     if (!err){
      *         console.log(data);
      *     }
      * });
      *
+     * // 8 colors
+     * var colors = colormatch.extract('photo.jpg', 8, function(err, data){
+     *     if (!err){
+     *         console.log(data);
+     *     }
+     * });
+     *
      * @param [String] image
+     * @param [Number] colors (optional)
      * @param [Function] callback
      */
-    extract: function(image, callback){
+    extract: function(image){
+
+        // args
+        var colors = (arguments.length > 2) ? arguments[1] : 24;
+        var callback = (arguments.length > 2) ? arguments[2] : arguments[1];
 
         // call imagemagick
         im.convert(
-            [image, '+dither', '-colors', 24, '-depth', 8, '-format', '#%c"', 'histogram:info:'],
+            [image, '+dither', '-colors', colors, '-depth', 8, '-format', '#%c"', 'histogram:info:'],
             function(err, stdout){
                 if (err){
 
@@ -35,8 +49,8 @@ module.exports = {
                     var histogram = stdout.trim().replace(/^[^\s]+(.*)[^\s]+$/m, '$1').split('\n');
                     histogram.pop();
 
-                    // read unique colors
-                    var colors = [];
+                    // read prominent colors
+                    var prominentcolors = [];
                     var total = 0;
                     histogram.forEach(function(colordata){
 
@@ -53,10 +67,10 @@ module.exports = {
 
                         }
 
-                        // push colors
+                        // push prominent colors
                         if (match){
                             var pixels = parseInt(match[1], 10);
-                            colors.push({
+                            prominentcolors.push({
                                 hex     : match[3],
                                 rgb     : match[2].split(',').map(function(x){return parseInt(x)}),
                                 pixels  : pixels
@@ -67,12 +81,12 @@ module.exports = {
                     });
 
                     // calculate pixel percentage
-                    colors.forEach(function(color){
+                    prominentcolors.forEach(function(color){
                         color.percent = Math.round(((color.pixels/total)*100)*100)/100;
                     });
 
                     // done
-                    callback(undefined, colors);
+                    callback(undefined, prominentcolors);
 
                 }
             }
