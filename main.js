@@ -22,7 +22,7 @@ module.exports = {
 
         // call imagemagick
         im.convert(
-            [src, '+dither', '-colors', 24, '-depth', 8, '-format', '#%c"', 'histogram:info:'],
+            [image, '+dither', '-colors', 24, '-depth', 8, '-format', '#%c"', 'histogram:info:'],
             function(err, stdout){
                 if (err){
 
