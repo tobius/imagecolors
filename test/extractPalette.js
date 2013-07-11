@@ -1,8 +1,8 @@
 var colormatch = require(__dirname+'/../main.js'),
     assert = require('assert');
 
-// default test
-colormatch.extract(__dirname + '/photo.jpg', function(err, data){
+// default palette test
+colormatch.extractPalette(__dirname + '/photo.jpg', __dirname + '/palette.json', function(err, data){
 
     // imagemagick error
     if (err){
@@ -23,7 +23,7 @@ colormatch.extract(__dirname + '/photo.jpg', function(err, data){
 });
 
 // custom color count test
-colormatch.extract(__dirname + '/photo.jpg', 10, function(err, data){
+colormatch.extractPalette(__dirname + '/photo.jpg', __dirname + '/palette.json', 10, function(err, data){
 
     // imagemagick error
     if (err){

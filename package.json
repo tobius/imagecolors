@@ -23,7 +23,7 @@
         "imagemagick": "*"
     },
     "scripts": {
-        "test": "node ./test/extract.js"
+        "test": "node ./test/extract.js && node ./test/extractPalette.js"
     },
     "engines": {
         "node": ">=0.10.5"
