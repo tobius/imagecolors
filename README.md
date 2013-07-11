@@ -20,7 +20,7 @@ A node module that extracts colors from an image using the color quantization al
 ## Code
 
 ``` bash
-    [~] vi test.js
+[~] vi test.js
 ```
 
 ``` javascript
