@@ -130,73 +130,73 @@ module.exports = {
         try {
 
             // use built-in JSON support
-            var palette = require(palette);
+            palette = require(palette);
+
+            // local extraction
+            this.extract(image, colors, function(err, colordata){
+                if (err){
+
+                    // extract error
+                    callback(err, undefined);
+
+                } else {
+
+                    // matched sherwin colors
+                    var sherwindata = [];
+
+                    // process each extracted color
+                    colordata.forEach(function(color){
+
+                        // record distance calculations
+                        var minimum = 9999;
+                        var closest = undefined;
+
+                        // calculate distance plots to determine the closest possible palette match
+                        // process each palette color
+                        palette.forEach(function(palettecolor){
+
+                            // calculate color deltas
+                            var delta_r = color.rgb[0] - palettecolor.rgb[0];
+                            var delta_g = color.rgb[1] - palettecolor.rgb[1];
+                            var delta_b = color.rgb[2] - palettecolor.rgb[2];
+
+                            // calculate distance between extracted color and palette color
+                            var distance = Math.sqrt((delta_r * delta_r) + (delta_g * delta_g) + (delta_b * delta_b));
+
+                            // remember closest color distance proximity
+                            if (distance < minimum){
+                                minimum = distance;
+                                closest = palettecolor;
+
+                                // calculate a custom color scale value (useful for custom sorting)
+                                closest.scale = Math.round((Math.sqrt(closest.rgb[0] + closest.rgb[1] + closest.rgb[2]))*100)/100;
+                            }
+
+                        });
+
+                        // combine extracted properties with palette properties
+                        closest.pixels = color.pixels;
+                        closest.percent = color.percent;
+
+                        // @todo: generate a label friendly color (for test output)
+                        //closest.label = generateLabelColor(closest.hex);
+
+                        // add closest color
+                        sherwindata.push(closest);
+                    });
+
+                    // done
+                    callback(undefined, sherwindata);
+
+                }
+            });
 
         } catch(err){
 
             // palette error
-            callback('Unable to find color palette: ' + palette, undefined);
+            callback(err, undefined);
 
         }
-
-        // local extraction
-        this.extract(image, colors, function(err, colordata){
-            if (err){
-
-                // extract error
-                callback(err, undefined);
-
-            } else {
-
-                // matched sherwin colors
-                var sherwindata = [];
-
-                // process each extracted color
-                colordata.forEach(function(color){
-
-                    // record distance calculations
-                    var minimum = 9999;
-                    var closest = undefined;
-
-                    // calculate distance plots to determine the closest possible palette match
-                    // process each palette color
-                    palette.forEach(function(palettecolor){
-
-                        // calculate color deltas
-                        var delta_r = color.rgb[0] - palettecolor.rgb[0];
-                        var delta_g = color.rgb[1] - palettecolor.rgb[1];
-                        var delta_b = color.rgb[2] - palettecolor.rgb[2];
-
-                        // calculate distance between extracted color and palette color
-                        var distance = Math.sqrt((delta_r * delta_r) + (delta_g * delta_g) + (delta_b * delta_b));
-
-                        // remember closest color distance proximity
-                        if (distance < minimum){
-                            minimum = distance;
-                            closest = palettecolor;
-
-                            // calculate a custom color scale value (useful for custom sorting)
-                            closest.scale = Math.round((Math.sqrt(closest.rgb[0] + closest.rgb[1] + closest.rgb[2]))*100)/100;
-                        }
-
-                    });
-
-                    // combine extracted properties with palette properties
-                    closest.pixels = color.pixels;
-                    closest.percent = color.percent;
-
-                    // @todo: generate a label friendly color (for test output)
-                    //closest.label = generateLabelColor(closest.hex);
-
-                    // add closest color
-                    sherwindata.push(closest);
-                });
-
-                // done
-                callback(undefined, sherwindata);
-
-            }
-        });
 
     }
 
