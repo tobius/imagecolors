@@ -3,40 +3,43 @@
 
 A node module that extracts colors from an image using the color quantization algorithms built into ImageMagick.
 
-## Usage
+## Install
 
-__install npm module__
+    [~] npm install git://github.com/tobius/colormatch.git
 
-    [~/myproject] npm install git://github.com/tobius/colormatch.git
+## Load Assets
 
-__write test code__
+    [~] curl -O https://raw.github.com/tobius/colormatch/master/test/photo.jpg
+    [~] curl -O https://raw.github.com/tobius/colormatch/master/test/palette.json
 
-    [~/myproject] vi test.js
+## Code
 
-    // colormatch
+    [~] vi test.js
+
     var colormatch = require('colormatch');
 
-    // usage: colormatch.extract(image_path [, color_count], callback);
-    // usage: colormatch.extractPalette(image_path, color_palette [, color_count], callback);
-
     // extract 10 most prominent colors
-    colormatch.extract('node_modules/colormatch/test/photo.jpg', 10, function(err, colors){
+    colormatch.extract('photo.jpg', 10, function(err, colors){
         if (!err){
+            console.log('\ntop 10 colors\n------------------------------');
             console.log(colors);
         }
     });
 
     // extract 10 closest prominent colors based on a custom color palette
-    colormatch.extractPalette('node_modules/colormatch/test/photo.jpg', 'node_modules/colormatch/test/palette.json', 10, function(err, colors){
+    colormatch.extractPalette('photo.jpg', __dirname + '/palette.json', 10, function(err, colors){
         if (!err){
+            console.log('\ntop 10 preferred colors\n------------------------------');
             console.log(colors);
         }
     });
 
-__watch in action__
+## Run
 
-    [~/myproject] node test.js
-    
+    [~] node test.js
+
+    top 10 colors
+    ------------------------------
     [ { hex: '33BACD',
         rgb: [ 51, 186, 205 ],
         pixels: 236486,
@@ -75,6 +78,59 @@ __watch in action__
         percent: 10.38 },
       { hex: 'F1F0DC',
         rgb: [ 241, 240, 220 ],
+        pixels: 212496,
+        percent: 10.25 } ]
+
+    top 10 preferred colors
+    ------------------------------
+    [ { hex: '31AAC1',
+        rgb: [ 49, 170, 193 ],
+        scale: 20.3,
+        pixels: 236486,
+        percent: 11.4 },
+      { hex: '3B373E',
+        rgb: [ 59, 55, 62 ],
+        scale: 13.27,
+        pixels: 177275,
+        percent: 8.55 },
+      { hex: '545C64',
+        rgb: [ 84, 92, 100 ],
+        scale: 16.61,
+        pixels: 465931,
+        percent: 22.47 },
+      { hex: '626E82',
+        rgb: [ 98, 110, 130 ],
+        scale: 18.38,
+        pixels: 114858,
+        percent: 5.54 },
+      { hex: '688D6A',
+        rgb: [ 104, 141, 106 ],
+        scale: 18.73,
+        pixels: 67665,
+        percent: 3.26 },
+      { hex: 'C44B2F',
+        rgb: [ 196, 75, 47 ],
+        scale: 17.83,
+        pixels: 223280,
+        percent: 10.77 },
+      { hex: 'CDC7BE',
+        rgb: [ 205, 199, 190 ],
+        scale: 24.37,
+        pixels: 168145,
+        percent: 8.11 },
+      { hex: 'D56890',
+        rgb: [ 213, 104, 144 ],
+        scale: 21.47,
+        pixels: 192152,
+        percent: 9.27 },
+      { hex: 'E5B73E',
+        rgb: [ 229, 183, 62 ],
+        scale: 21.77,
+        pixels: 215312,
+        percent: 10.38 },
+      { hex: 'EFECDD',
+        rgb: [ 239, 236, 221 ],
+        scale: 26.38,
         pixels: 212496,
         percent: 10.25 } ]
 
