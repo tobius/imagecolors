@@ -5,6 +5,7 @@ A node module that extracts colors from an image using the color quantization al
 
 ## Install
 
+    [~] mkdir node_modules
     [~] npm install git://github.com/tobius/colormatch.git
 
 ## Load Assets
