@@ -5,7 +5,7 @@ A node module that extracts colors from an image using the color quantization al
 
 ## Install
 
-There already exists a colormatch node module in the NPM registry so I'm just putting this here for now. I might rename it later or see about merging the functionality into the other module that was already published. In the meantime feel free to use this git repo in package.json.
+There already exists a colormatch node module in the NPM registry so I'm just putting this here for now. I might rename it later or see about merging the functionality into the other module that was already published. In the meantime feel free to use this git repo in your package.json dependency definitions.
 
 ``` bash
 [~] mkdir node_modules
