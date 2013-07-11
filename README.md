@@ -7,7 +7,7 @@ A node module that extracts colors from an image using the color quantization al
 
 There already exists a colormatch node module in the NPM registry so I'm just putting this here for now. I might rename it later or see about merging the functionality into the other module that was already published. In the meantime feel free to use this git repo in your package.json dependency definitions.
 
-``` bash
+```shell
 [~] mkdir node_modules
 [~] npm install git://github.com/tobius/colormatch.git
 ```
@@ -16,7 +16,7 @@ There already exists a colormatch node module in the NPM registry so I'm just pu
 
 If you already have a photo and/or JSON color palette to use then by all means. Otherwise you can use the ones out of the unit test folder to get started.
 
-``` bash
+```shell
 [~] curl -O https://raw.github.com/tobius/colormatch/master/test/photo.jpg
 [~] curl -O https://raw.github.com/tobius/colormatch/master/test/palette.json
 ```
@@ -25,11 +25,11 @@ If you already have a photo and/or JSON color palette to use then by all means. 
 
 Using this module is pretty easy, here's an example to get you started.
 
-``` bash
+```shell
 [~] vi test.js
 ```
 
-``` javascript
+```javascript
 var colormatch = require('colormatch');
 
 // extract 10 most prominent colors
@@ -53,7 +53,7 @@ colormatch.extractPalette('photo.jpg', __dirname + '/palette.json', 10, function
 
 I doubt that your goal was to pump this out to the command line, but for README usefulness I thought I'd show you what the example up above should produce. This is what you'll have to work with.
 
-``` bash
+```shell
 [~] node test.js
 
 top 10 colors
