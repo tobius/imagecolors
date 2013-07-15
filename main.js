@@ -46,7 +46,7 @@ module.exports = {
             .noProfile()
             .bitdepth(8)
             .colors(colors)
-            .write('histogram:' + tmpFile, function(err){
+            .write('histogram:' + tmpPath, function(err){
                 if (err){
 
                     // graphicsmagick error
@@ -56,7 +56,7 @@ module.exports = {
 
                     // build histogram
                     var histogram = '';
-                    var miff = fs.createReadStream(tmpFile, {encoding: 'utf8'});
+                    var miff = fs.createReadStream(tmpPath, {encoding: 'utf8'});
 
                     // add to histogram
                     miff.addListener('data', function(chunk){
