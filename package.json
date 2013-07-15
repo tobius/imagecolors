@@ -1,7 +1,7 @@
 {
     "name": "colormatch",
     "description": "A node module that extracts colors from an image using the color quantization algorithms built into ImageMagick.",
-    "version": "0.4.3",
+    "version": "0.5.0",
     "author": {
         "name": "Toby Miller",
         "email": "tobius.miller@gmail.com"
@@ -21,7 +21,8 @@
     },
     "dependencies": {
         "imagemagick": "*",
-        "gm": "*"
+        "gm": "*",
+        "color": "*"
     },
     "scripts": {
         "test": "node ./test/extract.js && node ./test/extractPalette.js"

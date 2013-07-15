@@ -1,7 +1,8 @@
 //var im = require('imagemagick');
-var fs = require('fs'),
+var Color = require('color'),
+    fs = require('fs'),
     gm = require('gm'),
-    im = gm.subClass({imageMagick: true});;
+    im = gm.subClass({imageMagick: true});
 
 // exported module
 module.exports = {
@@ -39,7 +40,7 @@ module.exports = {
 
         // prepare tmp file
         var tmpFile = image.replace(/^.*?([^\/]+?)$/g, '$1');
-        var tmpPath = image.replace(/^(.*?)[^\/]+?$/g, '$1') + '/tmp/' + tmpFile + '.miff';;
+        var tmpPath = image.replace(/^(.*?)\/[^\/]+?$/g, '$1') + '/tmp/' + tmpFile + '.miff';
 
         // call gm/im
         im(image)
@@ -72,23 +73,54 @@ module.exports = {
                             .replace(/\s+/g, '')
                             .replace(/^.+?comment=\{([^\}]+?)\}.+?$/, '$1');
 
-                        // convert string into object array
+                        // convert histogram string into color data
                         var prominentColors = [];
                         var totalPixels = 0;
                         histogram.match(/(\d+):\(([\d,]+)\)#([A-f0-9]{6})/g).forEach(function(prominentColor){
                             var parts  = /^(\d+):\(([\d,]+)\)#([A-f0-9]{6})$/.exec(prominentColor);
+                            var hex = '#' + parts[3];
                             var pixels = parseInt(parts[1]);
-                            totalPixels += pixels;
+                            var obj = Color(hex);
                             prominentColors.push({
                                 pixels  : pixels,
-                                rgb     : parts[2].split(',').map(function(x){return parseInt(x)}),
-                                hex     : parts[3]
+                                hex     : hex,
+                                rgb     : obj.rgb(),
+                                hsl     : obj.hsl(),
+                                hsv     : obj.hsv(),
+                                cmyk    : obj.cmyk()
                             });
+                            totalPixels += pixels;
                         });
  
                         // calculate pixel percentage
                         prominentColors.forEach(function(prominentColor){
                             prominentColor.percent = Math.round(((prominentColor.pixels/totalPixels)*100)*100)/100;
+                        });
+
+                        // calculate color family
+                        prominentColors.forEach(function(prominentColor){
+                            var family;
+                            if (prominentColor.rgb.r === prominentColor.rgb.g === prominentColor.rgb.b){
+                                family = 'neutral';
+                            } else {
+                                var closest = 360;
+                                [
+                                    { angle: 0,     label: 'red' },
+                                    { angle: 30,    label: 'orange' },
+                                    { angle: 60,    label: 'yellow' },
+                                    { angle: 120,   label: 'green' },
+                                    { angle: 210,   label: 'blue' },
+                                    { angle: 270,   label: 'violet' }
+                                ].forEach(function(hue){
+                                    var distance = Math.abs(prominentColor.hsv.h - hue.angle);
+                                    distance = (distance > 180) ? 360 - distance : distance;
+                                    if (distance < closest){
+                                        closest = distance;
+                                        family = hue.label;
+                                    }
+                                });
+                            }
+                            prominentColor.family = family;
                         });
 
                         // done
@@ -146,8 +178,8 @@ module.exports = {
 
                 } else {
 
-                    // matched sherwin colors
-                    var sherwindata = [];
+                    // matched custom colors
+                    var customdata = [];
 
                     // process each extracted color
                     colordata.forEach(function(color){
@@ -161,9 +193,9 @@ module.exports = {
                         palette.forEach(function(palettecolor){
 
                             // calculate color deltas
-                            var delta_r = color.rgb[0] - palettecolor.rgb[0];
-                            var delta_g = color.rgb[1] - palettecolor.rgb[1];
-                            var delta_b = color.rgb[2] - palettecolor.rgb[2];
+                            var delta_r = color.rgb.r - palettecolor.rgb.r;
+                            var delta_g = color.rgb.g - palettecolor.rgb.g;
+                            var delta_b = color.rgb.b - palettecolor.rgb.b;
 
                             // calculate distance between extracted color and palette color
                             var distance = Math.sqrt((delta_r * delta_r) + (delta_g * delta_g) + (delta_b * delta_b));
@@ -174,24 +206,27 @@ module.exports = {
                                 closest = palettecolor;
 
                                 // calculate a custom color scale value (useful for custom sorting)
-                                closest.scale = Math.round((Math.sqrt(closest.rgb[0] + closest.rgb[1] + closest.rgb[2]))*100)/100;
+                                closest.scale = Math.round((Math.sqrt(closest.rgb.r + closest.rgb.g + closest.rgb.b))*100)/100;
                             }
 
                         });
 
-                        // combine extracted properties with palette properties
-                        closest.pixels = color.pixels;
-                        closest.percent = color.percent;
+                        // combine color attributes to allow custom palettes to be partial
+                        for (var key in color){
+                            if (closest[key] === undefined){
+                                closest[key] = color[key];
+                            }
+                        }
 
                         // @todo: generate a label friendly color (for test output)
                         //closest.label = generateLabelColor(closest.hex);
 
                         // add closest color
-                        sherwindata.push(closest);
+                        customdata.push(closest);
                     });
 
                     // done
-                    callback(undefined, sherwindata);
+                    callback(undefined, customdata);
 
                 }
             });
