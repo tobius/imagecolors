@@ -1,4 +1,7 @@
-var im = require('imagemagick');
+//var im = require('imagemagick');
+var fs = require('fs'),
+    gm = require('gm'),
+    im = gm.subClass({imageMagick: true});;
 
 // exported module
 module.exports = {
@@ -34,64 +37,65 @@ module.exports = {
         var colors = (arguments.length > 2) ? arguments[1] : 24;
         var callback = (arguments.length > 2) ? arguments[2] : arguments[1];
 
-        // call imagemagick
-        im.convert(
-            [image, '+dither', '-colors', colors, '-depth', 8, '-format', '#%c"', 'histogram:info:'],
-            function(err, stdout){
+        // prepare tmp file
+        var tmpFile = __dirname + '/tmp/' + image.replace(/^.*?([^\/]+?)$/g, '$1') + '.miff';
+
+        // call gm/im
+        im(image)
+            .noProfile()
+            .bitdepth(8)
+            .colors(colors)
+            .write('histogram:' + tmpFile, function(err){
                 if (err){
 
-                    // imagemagick error
+                    // graphicsmagick error
                     callback(err, undefined);
 
                 } else {
 
-                    // clean up histogram
-                    var histogram = stdout.trim().replace(/^[^\s]+(.*)[^\s]+$/m, '$1').split('\n');
-                    histogram.pop();
+                    // build histogram
+                    var histogram = '';
+                    var miff = fs.createReadStream(tmpFile, {encoding: 'utf8'});
 
-                    // read prominent colors
-                    var prominentcolors = [];
-                    var total = 0;
-                    histogram.forEach(function(colordata){
+                    // add to histogram
+                    miff.addListener('data', function(chunk){
+                        histogram += chunk;
+                    });
 
-                        // imagemagick color output
-                        var colordata = colordata.replace(/\s+/g, '');
-                        var match = /(\d+):\(([\d,]+)\)#([A-F0-9]+)srgb\(([\d,]+)/.exec(colordata);
-                        if (!match){
+                    // clean up
+                    miff.addListener('close', function(){
+                        fs.unlink(tmpFile);
+                        
+                        // extract color data, ignore the rest
+                        histogram = histogram
+                            .replace(/\s+/g, '')
+                            .replace(/^.+?comment=\{([^\}]+?)\}.+?$/, '$1');
 
-                            // imagemagick black output (gets handled differently)
-                            match = /(\d+):\(([\d,]+)\)#(000000)(bl)/.exec(colordata);
-                            if (match){
-                                match[2] = '0,0,0';
-                            }
-
-                        }
-
-                        // push prominent colors
-                        if (match){
-                            var pixels = parseInt(match[1], 10);
-                            prominentcolors.push({
-                                hex     : match[3],
-                                rgb     : match[2].split(',').map(function(x){return parseInt(x)}),
-                                pixels  : pixels
+                        // convert string into object array
+                        var prominentColors = [];
+                        var totalPixels = 0;
+                        histogram.match(/(\d+):\(([\d,]+)\)#([A-f0-9]{6})/g).forEach(function(prominentColor){
+                            var parts  = /^(\d+):\(([\d,]+)\)#([A-f0-9]{6})$/.exec(prominentColor);
+                            var pixels = parseInt(parts[1]);
+                            totalPixels += pixels;
+                            prominentColors.push({
+                                pixels  : pixels,
+                                rgb     : parts[2].split(',').map(function(x){return parseInt(x)}),
+                                hex     : parts[3]
                             });
-                            total += pixels;
-                        }
+                        });
+ 
+                        // calculate pixel percentage
+                        prominentColors.forEach(function(prominentColor){
+                            prominentColor.percent = Math.round(((prominentColor.pixels/totalPixels)*100)*100)/100;
+                        });
 
+                        // done
+                        callback(undefined, prominentColors);
                     });
-
-                    // calculate pixel percentage
-                    prominentcolors.forEach(function(color){
-                        color.percent = Math.round(((color.pixels/total)*100)*100)/100;
-                    });
-
-                    // done
-                    callback(undefined, prominentcolors);
 
                 }
-            }
-        );
-
+            });
     },
 
     /**
