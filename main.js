@@ -65,7 +65,7 @@ module.exports = {
 
                     // clean up
                     miff.addListener('close', function(){
-                        fs.unlink(tmpFile);
+                        fs.unlink(tmpPath);
                         
                         // extract color data, ignore the rest
                         histogram = histogram
