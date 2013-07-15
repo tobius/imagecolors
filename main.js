@@ -38,7 +38,8 @@ module.exports = {
         var callback = (arguments.length > 2) ? arguments[2] : arguments[1];
 
         // prepare tmp file
-        var tmpFile = __dirname + '/tmp/' + image.replace(/^.*?([^\/]+?)$/g, '$1') + '.miff';
+        var tmpFile = image.replace(/^.*?([^\/]+?)$/g, '$1');
+        var tmpPath = image.replace(/^(.*?)[^\/]+?$/g, '$1') + '/tmp/' + tmpFile + '.miff';;
 
         // call gm/im
         im(image)
