@@ -186,7 +186,7 @@ module.exports = {
 
                         // record distance calculations
                         var minimum = 9999;
-                        var closest = undefined;
+                        var closest;
 
                         // calculate distance plots to determine the closest possible palette match
                         // process each palette color
