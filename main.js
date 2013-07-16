@@ -81,13 +81,15 @@ module.exports = {
                             var hex = '#' + parts[3];
                             var pixels = parseInt(parts[1]);
                             var obj = Color(hex);
+                            var hexContrast = (obj.hsv().v < 50) ? '#BBBBBB' : '#444444';
                             prominentColors.push({
-                                pixels  : pixels,
-                                hex     : hex,
-                                rgb     : obj.rgb(),
-                                hsl     : obj.hsl(),
-                                hsv     : obj.hsv(),
-                                cmyk    : obj.cmyk()
+                                pixels      : pixels,
+                                hex         : hex,
+                                hexContrast : hexContrast,
+                                rgb         : obj.rgb(),
+                                hsl         : obj.hsl(),
+                                hsv         : obj.hsv(),
+                                cmyk        : obj.cmyk()
                             });
                             totalPixels += pixels;
                         });

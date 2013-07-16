@@ -14,6 +14,7 @@ colormatch.extract(__dirname + '/photo.jpg', function(err, data){
     assert.ok(data.length === 24);
     assert.ok(data[0].pixels);
     assert.ok(data[0].hex);
+    assert.ok(data[0].hexContrast);
     assert.ok(data[0].rgb);
     assert.ok(data[0].hsl);
     assert.ok(data[0].hsv);
@@ -39,6 +40,7 @@ colormatch.extract(__dirname + '/photo.jpg', 10, function(err, data){
     assert.ok(data.length === 10);
     assert.ok(data[0].pixels);
     assert.ok(data[0].hex);
+    assert.ok(data[0].hexContrast);
     assert.ok(data[0].rgb);
     assert.ok(data[0].hsl);
     assert.ok(data[0].hsv);
