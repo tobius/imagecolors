@@ -1,0 +1,24 @@
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js" ></script>
+    <script type="text/javascript">
+    $(document).ready(function(){
+        
+        // sort colors by data key
+        sortBy = function(key){
+            var colors = $('div.color');
+            colors.sort(function(a, b){
+                var y = a.dataset[key];
+                var z = b.dataset[key];
+                if (_.isNumber(y)){
+                    y = parseFloat(y);
+                    z = parseFloat(z);
+                }
+                return (y > z) ? -1 : ((z > y) ? 1 : 0);
+            }).appendTo('.container');
+            $('#sortkey').text(key);
+        }
+
+    });
+    </script>
+</body>
+</html>
+
