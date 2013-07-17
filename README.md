@@ -8,7 +8,7 @@ A node module that pulls useful color information out of an image through a comb
 You can install via NPM with Github repo (NPM module coming soon).
 
 ```shell
-[~] mkdir node_modules
+[~] mkdir node_modules && mkdir tmp
 [~] npm install git://github.com/tobius/imagecolors.git
 ```
 <!--
@@ -28,20 +28,23 @@ var imagecolors = require('imagecolors');
  * note: maximum is currently capped at 96, need to do load testing before raising
  * usage: extract(imagePath, numColors)
  */
-imagecolors.extract('./photo.jpg', 24, function(err, colors){
+imagecolors.extract('./photo.jpg', 6, function(err, colors){
     if (!err){
+        console.log('EXTRACTED');
         console.log(colors);
+        console.log();
     }
-});
 
-/**
- * convert colors to a custom palete
- * usage: convert(color_object, palette_json)
- */
-imagecolors.convert(colors, './palette.json', function(err, colors){
-    if (!err){
-        console.log(colors);
-    }
+    /**
+     * convert colors to a custom palete
+     * usage: convert(color_object, palette_json)
+     */
+    imagecolors.convert(colors, './palette.json', function(err, colors){
+        if (!err){
+            console.log('CONVERTED');
+            console.log(colors);
+        }
+    });
 });
 ```
 
