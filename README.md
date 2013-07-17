@@ -25,7 +25,7 @@ var imagecolors = require('imagecolors');
  * note: maximum is currently capped at 96, need to do load testing before raising
  * usage: extract(imagePath, numColors)
  */
-imagecolors.extract('photo.jpg', 24, function(err, colors){
+imagecolors.extract('./photo.jpg', 24, function(err, colors){
     if (!err){
         console.log(colors);
     }
