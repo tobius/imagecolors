@@ -1,7 +1,7 @@
 
 # imagecolors
 
-A node module that pulls useful color information out of an image.
+A node module that pulls useful color information out of an image through a combination of ImageMagick color quantization algorithms and human fiddling.
 
 ## Install
 
