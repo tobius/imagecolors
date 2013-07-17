@@ -5,12 +5,15 @@ A node module that pulls useful color information out of an image through a comb
 
 ## Install
 
-You can install via NPM.
+You can install via NPM with Github repo (NPM module coming soon).
 
 ```shell
 [~] mkdir node_modules
-[~] npm install imagecolors
+[~] npm install git://github.com/tobius/imagecolors.git
 ```
+<!--
+[~] npm install imagecolors
+-->
 
 ## Usage
 
