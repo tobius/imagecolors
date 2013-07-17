@@ -22,7 +22,7 @@ var imagecolors = require('imagecolors');
 
 /**
  * extract predominant colors from image
- * note: maximum allowed is 48 (cpu intensive)
+ * note: maximum is currently capped at 96, need to do load testing before raising
  * usage: extract(imagePath, numColors)
  */
 imagecolors.extract('photo.jpg', 24, function(err, colors){
