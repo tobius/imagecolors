@@ -3,8 +3,6 @@
 
 A node module that pulls useful color information out of an image.
 
-_Note: This module assumes ImageMagick is installed._
-
 ## Install
 
 You can install via NPM.
