@@ -9,11 +9,8 @@ You can install via NPM with Github repo (NPM module coming soon).
 
 ```shell
 [~] mkdir node_modules && mkdir tmp
-[~] npm install git://github.com/tobius/imagecolors.git
-```
-<!--
 [~] npm install imagecolors
--->
+```
 
 ## Usage
 
