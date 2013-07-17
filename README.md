@@ -25,13 +25,21 @@ var imagecolors = require('imagecolors');
  * note: maximum allowed is 48 (cpu intensive)
  * usage: extract(imagePath, numColors)
  */
-var colors = imagecolors.extract('photo.jpg', 24);
+imagecolors.extract('photo.jpg', 24, function(err, colors){
+    if (!err){
+        console.log(colors);
+    }
+});
 
 /**
  * convert colors to a custom palete
  * usage: convert(color_object, palette_json)
  */
-colors = imagecolors.convert(colors, './palette.json');
+imagecolors.convert(colors, './palette.json', function(err, colors){
+    if (!err){
+        console.log(colors);
+    }
+});
 ```
 
 ## Return Format
