@@ -17,7 +17,7 @@ You can install via NPM with Github repo (NPM module coming soon).
 
 ## Usage
 
-Usage is fairly straight forward.
+Using this module is pretty straight forward.
 
 ```javascript
 // load module
@@ -47,6 +47,8 @@ imagecolors.extract('./photo.jpg', 6, function(err, colors){
     });
 });
 ```
+
+_Note: There are also example assets in the examples folder to help get you started._
 
 ## Return Format
 
