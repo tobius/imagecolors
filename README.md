@@ -44,8 +44,9 @@ This is what returned color objects look like.
     hex         : '#F0F0DC',
     labelHex    : '#444444',
     rgb         : { r: 240, g: 240, b: 220 },
-    hsl         : { h: 60, s: 40, l: 90 },
     hsv         : { h: 60, s: 8, v: 94 },
+    hsl         : { h: 60, s: 40, l: 90 },
+    luminance   : '0.94',
     cmyk        : { c: 0, m: 0, y: 8, k: 6 },
     percent     : 10.07,
     family      : 'yellow'
