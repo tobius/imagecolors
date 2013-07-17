@@ -5,7 +5,7 @@ A node module that pulls useful color information out of an image through a comb
 
 ## Install
 
-You can install via NPM with Github repo (NPM module coming soon).
+You can install via NPM.
 
 ```shell
 [~] mkdir node_modules && mkdir tmp
