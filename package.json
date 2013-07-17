@@ -1,33 +1,33 @@
 {
-    "name": "colormatch",
-    "description": "A node module that extracts colors from an image using the color quantization algorithms built into ImageMagick.",
-    "version": "0.5.1",
+    "name": "imagecolors",
+    "description": "A node module that pulls useful color information out of an image.",
+    "version": "0.6.0",
     "author": {
         "name": "Toby Miller",
         "email": "tobius.miller@gmail.com"
     },
     "keywords": [
-        "image",
         "color",
-        "extract",
-        "quantization",
-        "imagemagick"
+        "graphicsmagick",
+        "image",
+        "imagemagick",
+        "palette",
+        "quantization"
     ],
     "main": "./main.js",
-    "homepage": "http://github.com/tobius/colormatch",
+    "homepage": "http://github.com/tobius/imagecolors",
     "repository": {
         "type": "git",
-        "url": "git://github.com/tobius/colormatch.git"
+        "url": "git://github.com/tobius/imagecolors.git"
     },
     "dependencies": {
-        "imagemagick": "*",
-        "gm": "*",
-        "color": "*"
+        "color": "~0.4.4",
+        "gm": "~1.10.0"
     },
     "scripts": {
-        "test": "node ./test/extract.js && node ./test/extractPalette.js"
+        "test": "node ./test/imagecolors.js"
     },
     "engines": {
-        "node": ">=0.10.5"
+        "node": "~0.10.5"
     }
 }

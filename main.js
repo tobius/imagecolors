@@ -1,5 +1,5 @@
-//var im = require('imagemagick');
-var Color = require('color'),
+// required modules
+var color = require('color'),
     fs = require('fs'),
     gm = require('gm'),
     im = gm.subClass({imageMagick: true});
@@ -8,52 +8,44 @@ var Color = require('color'),
 module.exports = {
 
     /**
-     * extract prominent colors from an image file
+     * extract predominant colors from an image file
      *
      * Usage:
      *
-     * var colormatch = require('colormatch');
-     *
-     * // 24 colors
-     * var colors = colormatch.extract('photo.jpg', function(err, data){
+     * imagecolors.extract('./photo.jpg', function(err, colors){
      *     if (!err){
-     *         console.log(data);
+     *         console.log(colors);
      *     }
      * });
      *
-     * // 8 colors
-     * var colors = colormatch.extract('photo.jpg', 8, function(err, data){
-     *     if (!err){
-     *         console.log(data);
-     *     }
-     * });
-     *
-     * @param [String] image (png|jpg|gif)
-     * @param [Number] colors (optional)
+     * @param [String] imagePath
+     * @param [Integer] numColors
      * @param [Function] callback
      */
-    extract: function(image){
+    extract: function(imagePath, numColors, callback){
 
-        // args
-        var colors = (arguments.length > 2) ? arguments[1] : 24;
-        var callback = (arguments.length > 2) ? arguments[2] : arguments[1];
+        // force acceptable number of colors
+        numColors = (typeof numColors === 'undefined') ? 24 : Math.min(numColors, 96);
 
-        // prepare tmp file
-        var tmpFile = image.replace(/^.*?([^\/]+?)$/g, '$1');
-        var tmpPath = image.replace(/^(.*?)\/[^\/]+?$/g, '$1') + '/tmp/' + tmpFile + '.miff';
+        // prepare for output
+        var colors = [];
 
-        // call gm/im
-        im(image)
-            .noProfile()
-            .bitdepth(8)
-            .colors(colors)
-            .write('histogram:' + tmpPath, function(err){
-                if (err){
+        // get image status
+        var imageStats = fs.lstatSync(imagePath);
 
-                    // graphicsmagick error
-                    callback(err, undefined);
+        // confirm that file exists
+        if (imageStats.isFile()){
 
-                } else {
+            // tmp dir (heroku compatible)
+            var tmpFile = imagePath.replace(/^.*?([^\/]+?)$/g, '$1');
+            var tmpPath = imagePath.replace(/^(.*?)\/[^\/]+?$/g, '$1') + '/tmp/' + tmpFile + '.miff';
+
+            // use imagemagick to simplify image
+            var image = im(imagePath).noProfile().bitdepth(8).colors(numColors);
+
+            // extract histogram from image
+            image.write('histogram:' + tmpPath, function(err){
+                if (!err){
 
                     // build histogram
                     var histogram = '';
@@ -80,20 +72,23 @@ module.exports = {
                             var parts  = /^(\d+):\(([\d,]+)\)#([A-f0-9]{6})$/.exec(prominentColor);
                             var hex = '#' + parts[3];
                             var pixels = parseInt(parts[1]);
-                            var obj = Color(hex);
-                            var hexContrast = (obj.hsv().v < 50) ? '#BBBBBB' : '#444444';
+                            var obj = color(hex);
+                            var rgb = obj.rgb();
+                            var luminance = parseFloat((rgb.r * 0.2126 + rgb.g * 0.7152 + rgb.b * 0.0722) * (1 / 255)).toFixed(2);
+                            var labelHex = (luminance < 0.45) ? '#BBBBBB' : '#444444';
                             prominentColors.push({
                                 pixels      : pixels,
                                 hex         : hex,
-                                hexContrast : hexContrast,
-                                rgb         : obj.rgb(),
-                                hsl         : obj.hsl(),
+                                labelHex    : labelHex,
+                                rgb         : rgb,
                                 hsv         : obj.hsv(),
+                                hsl         : obj.hsl(),
+                                luminance   : luminance,
                                 cmyk        : obj.cmyk()
                             });
                             totalPixels += pixels;
                         });
- 
+
                         // calculate pixel percentage
                         prominentColors.forEach(function(prominentColor){
                             prominentColor.percent = Math.round(((prominentColor.pixels/totalPixels)*100)*100)/100;
@@ -131,112 +126,95 @@ module.exports = {
 
                 }
             });
+
+        } else {
+
+            // bow out
+            callback('Image does not exist', undefined);
+        }
+
     },
 
     /**
-     * extract closest matching palette colors from an image file
+     * convert colors to a custom palette
      *
      * Usage:
      *
-     * var colormatch = require('colormatch');
-     *
-     * // 24 colors
-     * var colors = colormatch.extractPalette('photo.jpg', 'palette.json', function(err, data){
+     * imagecolors.convert(oldColors, './palette.json', function(err, colors){
      *     if (!err){
-     *         console.log(data);
+     *         console.log(colors);
      *     }
      * });
      *
-     * // 8 colors
-     * var colors = colormatch.extractPalette('photo.jpg', 'palette.json', 8, function(err, data){
-     *     if (!err){
-     *         console.log(data);
-     *     }
-     * });
-     *
-     * @param [String] image (png|jpg|gif)
-     * @param [String] palette (JSON)
-     * @param [Number] colors (optional)
+     * @param [Array] oldColors
+     * @param [String] palettePath
      * @param [Function] callback
      */
-    extractPalette: function(image, palette){
+    convert: function(oldColors, palettePath, callback){
 
-        // args
-        var colors = (arguments.length > 3) ? arguments[2] : 24;
-        var callback = (arguments.length > 3) ? arguments[3] : arguments[2];
+        // get palette status
+        var paletteStats = fs.lstatSync(palettePath);
 
-        // load color palette
-        try {
+        // confirm that file exists
+        if (paletteStats.isFile()){
 
-            // use built-in JSON support
-            palette = require(palette);
+            // get json
+            var palette = JSON.parse(fs.readFileSync(palettePath, 'utf8'));
 
-            // local extraction
-            this.extract(image, colors, function(err, colordata){
-                if (err){
+            // matched custom colors
+            var customdata = [];
 
-                    // extract error
-                    callback(err, undefined);
+            // process each extracted color
+            oldColors.forEach(function(color){
 
-                } else {
+                // record distance calculations
+                var minimum = 9999;
+                var closest;
 
-                    // matched custom colors
-                    var customdata = [];
+                // calculate distance plots to determine the closest possible palette match
+                // process each palette color
+                palette.forEach(function(palettecolor){
 
-                    // process each extracted color
-                    colordata.forEach(function(color){
+                    // calculate color deltas
+                    var delta_r = color.rgb.r - palettecolor.rgb.r;
+                    var delta_g = color.rgb.g - palettecolor.rgb.g;
+                    var delta_b = color.rgb.b - palettecolor.rgb.b;
 
-                        // record distance calculations
-                        var minimum = 9999;
-                        var closest;
+                    // calculate distance between extracted color and palette color
+                    var distance = Math.sqrt((delta_r * delta_r) + (delta_g * delta_g) + (delta_b * delta_b));
 
-                        // calculate distance plots to determine the closest possible palette match
-                        // process each palette color
-                        palette.forEach(function(palettecolor){
+                    // remember closest color distance proximity
+                    if (distance < minimum){
+                        minimum = distance;
+                        closest = palettecolor;
 
-                            // calculate color deltas
-                            var delta_r = color.rgb.r - palettecolor.rgb.r;
-                            var delta_g = color.rgb.g - palettecolor.rgb.g;
-                            var delta_b = color.rgb.b - palettecolor.rgb.b;
+                        // calculate a custom color scale value (useful for custom sorting)
+                        closest.scale = Math.round((Math.sqrt(closest.rgb.r + closest.rgb.g + closest.rgb.b))*100)/100;
+                    }
 
-                            // calculate distance between extracted color and palette color
-                            var distance = Math.sqrt((delta_r * delta_r) + (delta_g * delta_g) + (delta_b * delta_b));
+                });
 
-                            // remember closest color distance proximity
-                            if (distance < minimum){
-                                minimum = distance;
-                                closest = palettecolor;
-
-                                // calculate a custom color scale value (useful for custom sorting)
-                                closest.scale = Math.round((Math.sqrt(closest.rgb.r + closest.rgb.g + closest.rgb.b))*100)/100;
-                            }
-
-                        });
-
-                        // combine color attributes to allow custom palettes to be partial
-                        for (var key in color){
-                            if (closest[key] === undefined){
-                                closest[key] = color[key];
-                            }
-                        }
-
-                        // @todo: generate a label friendly color (for test output)
-                        //closest.label = generateLabelColor(closest.hex);
-
-                        // add closest color
-                        customdata.push(closest);
-                    });
-
-                    // done
-                    callback(undefined, customdata);
-
+                // combine color attributes to allow custom palettes to be partial
+                for (var key in color){
+                    if (closest[key] === undefined){
+                        closest[key] = color[key];
+                    }
                 }
+
+                // @todo: generate a label friendly color (for test output)
+                //closest.label = generateLabelColor(closest.hex);
+
+                // add closest color
+                customdata.push(closest);
             });
 
-        } catch(err){
+            // done
+            callback(undefined, customdata);
 
-            // palette error
-            callback(err, undefined);
+        } else {
+
+            // bow out
+            callback('Palette does not exist', undefined);
 
         }
 
