@@ -8,7 +8,7 @@ var head = fs.readFileSync(__dirname + '/templates/head.tmpl', 'utf8');
 var foot = fs.readFileSync(__dirname + '/templates/foot.tmpl', 'utf8');
 
 // extract image colors
-imagecolors.extract(__dirname + '/photo.jpg', 96, function(err, colors){
+imagecolors.extract(__dirname + '/photo.jpg', 6, function(err, colors){
 
     // convert to custom palette
     imagecolors.convert(colors, __dirname + '/palette.json', function(err, colors){
