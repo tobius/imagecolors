@@ -17,6 +17,14 @@
             $('#sortkey').text(key);
         }
 
+        $('div.color').on('mouseover', function(){
+            $('html').css('background-color', $(this).css('background-color'));
+        });
+
+        $('div.color').on('mouseout', function(){
+            $('html').css('background-color', '#efefef');
+        });
+
     });
     </script>
 </body>

@@ -1,5 +1,6 @@
 // required modules
-var color = require('color'),
+var _ = require('underscore'),
+    color = require('color'),
     fs = require('fs'),
     gm = require('gm'),
     im = gm.subClass({imageMagick: true});
@@ -18,6 +19,12 @@ module.exports = {
      *     }
      * });
      *
+     * imagecolors.extract('http://mysite.com/photo.jpg', function(err, colors){
+     *     if (!err){
+     *         console.log(colors);
+     *     }
+     * });
+     *
      * @param [String] imagePath
      * @param [Integer] numColors
      * @param [Function] callback
@@ -31,14 +38,15 @@ module.exports = {
         var colors = [];
 
         // get image status
-        var imageStats = fs.lstatSync(imagePath);
+        var isUri = imagePath.match(/^htt/) ? true : false;
+        var isValid = (!isUri && fs.lstatSync(imagePath).isFile()) ? true : (isUri ? true : false);
 
-        // confirm that file exists
-        if (imageStats.isFile()){
+        // imagePath appears valid
+        if (isValid){
 
             // tmp dir (heroku compatible)
             var tmpFile = imagePath.replace(/^.*?([^\/]+?)$/g, '$1');
-            var tmpPath = imagePath.replace(/^(.*?)\/[^\/]+?$/g, '$1') + '/tmp/' + tmpFile + '.miff';
+            var tmpPath = __dirname + '/tmp/' + tmpFile + '.miff';
 
             // use imagemagick to simplify image
             var image = im(imagePath).noProfile().bitdepth(8).colors(numColors);
@@ -94,6 +102,177 @@ module.exports = {
                             prominentColor.percent = Math.round(((prominentColor.pixels/totalPixels)*100)*100)/100;
                         });
 
+                        // testing
+                        var isSimilar = function(color1, color2){
+                            var tolerance = 0.01 * (255 * 255 * 3) << 0;
+                            var distance = 0;
+                            distance += Math.pow(color1.rgb.r - color2.rgb.r, 2);
+                            distance += Math.pow(color1.rgb.g - color2.rgb.g, 2);
+                            distance += Math.pow(color1.rgb.b - color2.rgb.b, 2);
+                            return distance <= tolerance;
+                        };
+
+                        var isDifferent = function(color, colors){
+                            var colorLength = colors.length;
+                            for (var i = 0; i < colorLength; i++){
+                                if (isSimilar(color, colors[i])){
+                                    return false;
+                                }
+                            }
+                            return true;
+                        };
+
+                        var getUniqueColors = function(colors, max){
+                            var unique = [];
+                            var colorLength = colors.length;
+                            for (var i = 0; i < colorLength && unique.length < max; i++){
+                                if (isDifferent(colors[i], unique)){
+                                    unique.push(colors[i]);
+                                }
+                            }
+                            return unique;
+                        };
+
+                        // extract the most unique colors
+                        //prominentColors = getUniqueColors(prominentColors, numColors);
+
+                        // calculate color family
+                        var families = [
+                            { name: 'black',             family: 'black',  rgb: { r:0,   g:0,   b:0   } },
+                            { name: 'blue',              family: 'blue',   rgb: { r:0,   g:0,   b:255 } },
+                            { name: 'lightblue',         family: 'blue',   rgb: { r:173, g:216, b:230 } },
+                            { name: 'darkblue',          family: 'blue',   rgb: { r:0,   g:0,   b:139 } },
+                            { name: 'cadetblue',         family: 'blue',   rgb: { r:95,  g:158, b:160 } },
+                            { name: 'cornflowerblue',    family: 'blue',   rgb: { r:100, g:149, b:237 } },
+                            { name: 'deepskyblue',       family: 'blue',   rgb: { r:0,   g:191, b:255 } },
+                            { name: 'dodgeblue',         family: 'blue',   rgb: { r:30,  g:144, b:255 } },
+                            { name: 'turquoise',         family: 'blue',   rgb: { r:64,  g:224, b:208 } },
+                            { name: 'powderblue',        family: 'blue',   rgb: { r:176, g:224, b:230 } },
+                            { name: 'lightcyan',         family: 'blue',   rgb: { r:224, g:255, b:255 } },
+                            { name: 'babyblue',          family: 'blue',   rgb: { r:217, g:239, b:246 } }, // custom
+                            { name: 'brown',             family: 'brown',  rgb: { r:165, g:42,  b:42  } },
+                            { name: 'saddlebrown',       family: 'brown',  rgb: { r:139, g:69,  b:19  } },
+                            { name: 'sienna',            family: 'brown',  rgb: { r:160, g:82,  b:45  } },
+                            { name: 'cranberrybrown',    family: 'brown',  rgb: { r:96,  g:60,  b:57  } }, // custom
+                            { name: 'gray',              family: 'gray',   rgb: { r:128, g:128, b:128 } },
+                            { name: 'darkgray',          family: 'gray',   rgb: { r:169, g:169, b:169 } },
+                            { name: 'dimgray',           family: 'gray',   rgb: { r:105, g:105, b:105 } },
+                            { name: 'lightgray',         family: 'gray',   rgb: { r:211, g:211, b:211 } },
+                            { name: 'slategray',         family: 'gray',   rgb: { r:112, g:128, b:144 } },
+                            { name: 'green',             family: 'green',  rgb: { r:0,   g:128, b:0   } },
+                            { name: 'darkgreen',         family: 'green',  rgb: { r:0,   g:100, b:0   } },
+                            { name: 'darkolivegreen',    family: 'green',  rgb: { r:85,  g:107, b:47  } },
+                            { name: 'forestgreen',       family: 'green',  rgb: { r:34,  g:139, b:34  } },
+                            { name: 'greenyellow',       family: 'green',  rgb: { r:173, g:255, b:47  } },
+                            { name: 'lawngreen',         family: 'green',  rgb: { r:124, g:252, b:0   } },
+                            { name: 'lightgreen',        family: 'green',  rgb: { r:144, g:238, b:144 } },
+                            { name: 'mediumspringgreen', family: 'green',  rgb: { r:0,   g:250, b:154 } },
+                            { name: 'mediumseagreen',    family: 'green',  rgb: { r:60,  g:179, b:113 } },
+                            { name: 'superdarkgreen',    family: 'green',  rgb: { r:0,   g:41,  b:0   } }, // custom
+                            { name: 'seafoamgreen',      family: 'green',  rgb: { r:105, g:156, b:109 } }, // custom
+                            { name: 'orange',            family: 'orange', rgb: { r:255, g:165, b:0   } },
+                            { name: 'darkorange',        family: 'orange', rgb: { r:255, g:140, b:0   } },
+                            { name: 'orangered',         family: 'orange', rgb: { r:255, g:69,  b:0   } },
+                            { name: 'richorange',        family: 'orange', rgb: { r:198, g:54,  b:9   } },
+                            { name: 'tomato',            family: 'orange', rgb: { r:255, g:99,  b:71  } },
+                            { name: 'goldenrod',         family: 'orange', rgb: { r:218, g:165, b:32  } },
+                            { name: 'pink',              family: 'pink',   rgb: { r:255, g:192, b:203 } },
+                            { name: 'deeppink',          family: 'pink',   rgb: { r:255, g:20,  b:147 } },
+                            { name: 'fuchsia',           family: 'pink',   rgb: { r:255, g:0,   b:255 } },
+                            { name: 'hotpink',           family: 'pink',   rgb: { r:255, g:105, b:80  } },
+                            { name: 'lightpink',         family: 'pink',   rgb: { r:255, g:182, b:193 } },
+                            { name: 'violet',            family: 'pink',   rgb: { r:238, g:130, b:238 } },
+                            { name: 'palevioletred',     family: 'pink',   rgb: { r:219, g:112, b:147 } },
+                            { name: 'lavender',          family: 'pink',   rgb: { r:230, g:230, b:250 } },
+                            { name: 'purple',            family: 'purple', rgb: { r:128, g:0,   b:128 } },
+                            { name: 'indigo',            family: 'purple', rgb: { r:75,  g:0,   b:130 } },
+                            { name: 'superdarkpurple',   family: 'purple', rgb: { r:41,  g:0,   b:41  } }, // custom
+                            { name: 'plum',              family: 'purple', rgb: { r:221, g:160, b:221 } },
+                            { name: 'red',               family: 'red',    rgb: { r:255, g:0,   b:0   } },
+                            { name: 'darkred',           family: 'red',    rgb: { r:139, g:0,   b:0   } },
+                            { name: 'indianred',         family: 'red',    rgb: { r:205, g:92,  b:92  } },
+                            { name: 'tomatobisque',      family: 'red',    rgb: { r:198, g:51,  b:57  } }, // custom
+                            { name: 'tan',               family: 'tan',    rgb: { r:210, g:180, b:140 } },
+                            { name: 'wheat',             family: 'tan',    rgb: { r:245, g:222, b:179 } },
+                            { name: 'sandybrown',        family: 'tan',    rgb: { r:244, g:164, b:96  } },
+                            { name: 'khaki',             family: 'tan',    rgb: { r:240, g:230, b:140 } },
+                            { name: 'rosybrown',         family: 'tan',    rgb: { r:188, g:143, b:143 } },
+                            { name: 'yellow',            family: 'yellow', rgb: { r:255, g:255, b:0   } },
+                            { name: 'yellowgreen',       family: 'yellow', rgb: { r:154, g:205, b:50  } },
+                            { name: 'gold',              family: 'yellow', rgb: { r:255, g:215, b:0   } },
+                            { name: 'sunflower',         family: 'yellow', rgb: { r:198, g:198, b:48  } }, // custom
+                            { name: 'white',             family: 'white',  rgb: { r:255, g:255, b:255 } },
+                            { name: 'antiquewhite',      family: 'white',  rgb: { r:250, g:235, b:215 } },
+                            { name: 'cornsilk',          family: 'white',  rgb: { r:255, g:248, b:220 } }
+                        ];
+
+                        // find each colors closest color family
+                        prominentColors.forEach(function(color){
+
+                            // record distance calculations
+                            var minimum = 9999;
+                            var closest;
+
+                            // calculate distance plots to determine the closest possible family match
+                            families.forEach(function(familyColor){
+
+                                // calculate color deltas
+                                var deltaR = color.rgb.r - familyColor.rgb.r;
+                                var deltaG = color.rgb.g - familyColor.rgb.g;
+                                var deltaB = color.rgb.b - familyColor.rgb.b;
+
+                                // calculate distance between extracted color and palette color
+                                var distance = Math.sqrt((deltaR * deltaR) + (deltaG * deltaG) + (deltaB * deltaB));
+
+                                // remember closest color distance proximity
+                                if (distance < minimum){
+
+                                    // shade variance
+                                    var variance = Math.max.apply(255, _.values(color.rgb)) - Math.min.apply(0, _.values(color.rgb));
+                                    var valid = false;
+
+                                    // consider shade variance as a matching factor
+                                    if (variance <= 15){
+
+                                        // only allow shade families
+                                        if (_.contains(['black','white','gray'], familyColor.family)){
+                                            valid = true;
+                                        }
+
+                                    } else {
+                                        
+                                        if (_.contains(['black', 'white', 'gray'], familyColor.family)){
+
+                                            // allow shade families
+                                            if (variance <= 30){
+                                                valid = true;
+                                            }
+
+                                        } else {
+
+                                            // normal color families
+                                            valid = true;
+
+                                        }
+
+                                    }
+
+                                    if (valid){
+                                        minimum = distance;
+                                        closest = familyColor;
+                                        closest.variance = variance;
+                                    }
+                                }
+
+                            });
+
+                            // add closest color
+                            color.family = closest.family;
+                            color.similar = closest.name;
+                            color.variance = closest.variance;
+                        });
+
+                        /*
                         // calculate color family
                         prominentColors.forEach(function(prominentColor){
                             var family;
@@ -119,6 +298,7 @@ module.exports = {
                             }
                             prominentColor.family = family;
                         });
+                        */
 
                         // done
                         callback(undefined, prominentColors);
@@ -172,21 +352,20 @@ module.exports = {
                 var closest;
 
                 // calculate distance plots to determine the closest possible palette match
-                // process each palette color
-                palette.forEach(function(palettecolor){
+                palette.forEach(function(paletteColor){
 
                     // calculate color deltas
-                    var delta_r = color.rgb.r - palettecolor.rgb.r;
-                    var delta_g = color.rgb.g - palettecolor.rgb.g;
-                    var delta_b = color.rgb.b - palettecolor.rgb.b;
+                    var deltaR = color.rgb.r - paletteColor.rgb.r;
+                    var deltaG = color.rgb.g - paletteColor.rgb.g;
+                    var deltaB = color.rgb.b - paletteColor.rgb.b;
 
                     // calculate distance between extracted color and palette color
-                    var distance = Math.sqrt((delta_r * delta_r) + (delta_g * delta_g) + (delta_b * delta_b));
+                    var distance = Math.sqrt((deltaR * deltaR) + (deltaG * deltaG) + (deltaB * deltaB));
 
                     // remember closest color distance proximity
                     if (distance < minimum){
                         minimum = distance;
-                        closest = palettecolor;
+                        closest = paletteColor;
 
                         // calculate a custom color scale value (useful for custom sorting)
                         closest.scale = Math.round((Math.sqrt(closest.rgb.r + closest.rgb.g + closest.rgb.b))*100)/100;
