@@ -44,29 +44,19 @@ module.exports = {
         // imagePath appears valid
         if (isValid){
 
-            // tmp dir (heroku compatible)
-            var tmpFile = imagePath.replace(/^.*?([^\/]+?)$/g, '$1');
-            var tmpPath = __dirname + '/tmp/' + tmpFile + '.miff';
-
             // use imagemagick to simplify image
             var image = im(imagePath).noProfile().bitdepth(8).colors(numColors);
 
             // extract histogram from image
-            image.write('histogram:' + tmpPath, function(err){
+            image.stream('histogram', function(err, stdout, stderr){
                 if (!err){
 
-                    // build histogram
+                    // capture and use histogram
                     var histogram = '';
-                    var miff = fs.createReadStream(tmpPath, {encoding: 'utf8'});
-
-                    // add to histogram
-                    miff.addListener('data', function(chunk){
+                    stdout.addListener('data', function(chunk){
                         histogram += chunk;
                     });
-
-                    // clean up
-                    miff.addListener('close', function(){
-                        fs.unlink(tmpPath);
+                    stdout.addListener('close', function(){
                         
                         // extract color data, ignore the rest
                         histogram = histogram
