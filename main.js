@@ -123,9 +123,67 @@ module.exports = {
                             return unique;
                         };
 
+                        // calculate color family
+                        prominentColors.forEach(function(color){
+
+                            // family matching algorithms
+                            var families = [
+                                { name : 'neutral',         h : null,       s : null,       l : [90,100]    },  // light
+                                { name : 'neutral',         h : null,       s : [0,10],     l : null        },  // medium
+                                { name : 'neutral',         h : null,       s : null,       l : [0,10]      },  // dark
+                                { name : 'pink',            h : [346,15],   s : [0,60],     l : null        },  // red -> pink
+                                { name : 'brown',           h : [346,15],   s : null,       l : [0,40]      },  // red -> brown
+                                { name : 'red',             h : [346,15],   s : null,       l : null        },
+                                { name : 'orange',          h : [16,45],    s : [0,70],     l : null        },  // yellow-red -> brown
+                                { name : 'orange',          h : [16,45],    s : null,       l : null        },  // yellow-red -> orange
+                                { name : 'yellow',          h : [46,75],    s : null,       l : [0,80]      },  // yellow -> green
+                                { name : 'yellow',          h : [46,75],    s : null,       l : null        },
+                                { name : 'green',           h : [76,105],   s : null,       l : null        },  // green-yellow -> green
+                                { name : 'green',           h : [106,135],  s : null,       l : null        },
+                                { name : 'green',           h : [136,165],  s : null,       l : null        },  // cyan-green -> green
+                                { name : 'blue',            h : [166,195],  s : null,       l : null        },  // cyan -> blue
+                                { name : 'blue',            h : [196,225],  s : null,       l : null        },  // blue-cyan -> blue
+                                { name : 'purple',          h : [226,255],  s : [0,54],     l : null        },  // blue -> purple
+                                { name : 'blue',            h : [226,255],  s : null,       l : null        },
+                                { name : 'purple',          h : [256,285],  s : null,       l : null        },  // magenta-blue -> purple
+                                { name : 'purple',          h : [286,315],  s : null,       l : [0,70]      },  // magenta -> purple
+                                { name : 'pink',            h : [286,315],  s : null,       l : [71,100]    },  // magenta -> pink
+                                { name : 'pink',            h : [316,345],  s : null,       l : null        }   // red-magenta -> pink
+                            ];
+
+                            // find color family
+                            var family = 'unknown';
+                            families.forEach(function(f){
+
+                                // default to true
+                                var match = true;
+
+                                // test conditions
+                                ['h','s','l'].forEach(function(key){
+                                    if (match && f[key]){
+                                        if (f[key][0] > f[key][1]){
+                                            if (!(color.hsl[key] >= f[key][0] || color.hsl[key] <= f[key][1])){
+                                                match = false;
+                                            }
+                                        } else if (!(color.hsl[key] >= f[key][0] && color.hsl[key] <= f[key][1])){
+                                            match = false;
+                                        }
+                                    }
+                                });
+
+                                // assign result if pass
+                                if (match){
+                                    family = f.name;
+                                }
+                            });
+                            color.family = family;
+
+                        });
+
                         // extract the most unique colors
                         //prominentColors = getUniqueColors(prominentColors, numColors);
 
+                        /*
                         // calculate color family
                         var families = [
                             { name: 'black',             family: 'black',  rgb: { r:0,   g:0,   b:0   } },
@@ -261,6 +319,7 @@ module.exports = {
                             color.similar = closest.name;
                             color.variance = closest.variance;
                         });
+                        */
 
                         /*
                         // calculate color family
@@ -369,9 +428,6 @@ module.exports = {
                         closest[key] = color[key];
                     }
                 }
-
-                // @todo: generate a label friendly color (for test output)
-                //closest.label = generateLabelColor(closest.hex);
 
                 // add closest color
                 customdata.push(closest);
