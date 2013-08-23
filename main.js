@@ -1,6 +1,7 @@
 // required modules
 var _ = require('underscore'),
     color = require('color'),
+    diff = require('color-diff'),
     extend = require('util')._extend,
     fs = require('fs'),
     gm = require('gm'),
@@ -33,6 +34,49 @@ module.exports = {
     },
 
     /**
+     * build a complete color profile from a hex value
+     *
+     * @private
+     * @param {String} hex
+     * @return {Object}
+     */
+    buildColorProfile: function(hex){
+
+        // color object
+        var obj = color(hex);
+
+        // rgb value
+        var rgb = obj.rgb();
+
+        // hsv value
+        var hsv = obj.hsv();
+
+        // hsl value
+        var hsl = obj.hsl();
+
+        // cmyk value
+        var cmyk = obj.cmyk();
+
+        // luminance
+        var luminance = Math.round(parseFloat((rgb.r * 0.2126 + rgb.g * 0.7152 + rgb.b * 0.0722) * (1 / 255)).toFixed(2) * 100);
+
+        // label hex value
+        var labelHex = (luminance < 45) ? '#BBBBBB' : '#444444';
+
+        // done
+        return {
+            luminance   : luminance,
+            hex         : hex,
+            labelHex    : labelHex,
+            rgb         : rgb,
+            hsv         : hsv,
+            hsl         : hsl,
+            cmyk        : cmyk
+        };
+
+    },
+
+    /**
      * extract all colors from an image file
      *
      * @private
@@ -40,6 +84,9 @@ module.exports = {
      * @param {Function} callback
      */
     extractAllColors: function(image, callback){
+
+        // delegate
+        var delegate = this;
 
         // extract histogram
         image.stream('histogram', function(err, stdout, stderr){
@@ -78,40 +125,22 @@ module.exports = {
                         // hex value
                         var hex = '#' + parts[3];
 
-                        // color object
-                        var obj = color(hex);
-
-                        // rgb value
-                        var rgb = obj.rgb();
-
-                        // hsv value
-                        var hsv = obj.hsv();
-
-                        // hsl value
-                        var hsl = obj.hsl();
-
-                        // cmyk value
-                        var cmyk = obj.cmyk();
+                        // build color
+                        var color = delegate.buildColorProfile(hex);
 
                         // number of pixels
                         var pixels = parseInt(parts[1]);
 
-                        // luminance
-                        var luminance = Math.round(parseFloat((rgb.r * 0.2126 + rgb.g * 0.7152 + rgb.b * 0.0722) * (1 / 255)).toFixed(2) * 100);
-
-                        // label hex value
-                        var labelHex = (luminance < 45) ? '#BBBBBB' : '#444444';
-
                         // organize results
                         colors.push({
                             pixels      : pixels,
-                            luminance   : luminance,
+                            luminance   : color.luminance,
                             hex         : hex,
-                            labelHex    : labelHex,
-                            rgb         : rgb,
-                            hsv         : hsv,
-                            hsl         : hsl,
-                            cmyk        : cmyk,
+                            labelHex    : color.labelHex,
+                            rgb         : color.rgb,
+                            hsv         : color.hsv,
+                            hsl         : color.hsl,
+                            cmyk        : color.cmyk,
                             score       : {}
                         });
 
@@ -151,7 +180,7 @@ module.exports = {
 
             // red family
             { name : 'red',             h : [10,21],    s : [75,80],    l : [10,100]    },  // red
-            { name : 'red',             h : [346,15],   s : [1,100],    l : [10,97]    },
+            { name : 'red',             h : [346,15],   s : [20,100],   l : [10,97]    },
 
             // orange family
             { name : 'orange',          h : [16,45],    s : [30,100],   l : [15,74]    },  // yellow-red -> orange
@@ -256,8 +285,11 @@ module.exports = {
      */
     mergeSimilarColors: function(colors){
 
+        // delegate
+        var delegate = this;
+
         // set similarity tolerance thresholds
-        var toleranceMax = 0.01;
+        var toleranceMax = 50;
         var toleranceThreshold = 0;
 
         // count total number of pixels
@@ -270,7 +302,7 @@ module.exports = {
         while(true){
 
             // increase tolerance threshold
-            toleranceThreshold += 0.001;
+            toleranceThreshold += 1;
 
             // track the absorbed colors
             var absorbedColors = [];
@@ -285,15 +317,9 @@ module.exports = {
                     if (!_.contains(absorbedColors, color1.hex) && !_.contains(absorbedColors, color2.hex)){
 
                         // calculate tolerance
-                        var tolerance = toleranceThreshold * (255 * 255 * 3) << 0;
-
-                        // calculate distance
-                        var distance = 0;
-                        distance += Math.pow(color1.rgb.r - color2.rgb.r, 2);
-                        distance += Math.pow(color1.rgb.g - color2.rgb.g, 2);
-                        distance += Math.pow(color1.rgb.b - color2.rgb.b, 2);
-
-                        if (distance <= tolerance){
+                        var distance = delegate.getEuclidianDistance(_.values(color1.rgb), _.values(color2.rgb));
+                        
+                        if (distance <= toleranceThreshold){
 
                             // colors are similar, absorb them
                             if (color1.percent > color2.percent){
@@ -400,7 +426,7 @@ module.exports = {
      * @param {Object} options
      * @return
      */
-    applyBoxedAlgorithm: function(colors, options){
+    applyBoxAlgorithm: function(colors, options){
 
         if (options.name && options.getX && options.getY && options.xRange && options.yRange){
 
@@ -474,7 +500,7 @@ module.exports = {
      */
     applyCenterColorScore: function(colors){
 
-        this.applyBoxedAlgorithm(colors, {
+        this.applyBoxAlgorithm(colors, {
             name    : 'center',
             weight  : 0.7,
             xRange  : [20, 80],
@@ -496,7 +522,7 @@ module.exports = {
      */
     applyVividColorScore: function(colors){
 
-        this.applyBoxedAlgorithm(colors, {
+        this.applyBoxAlgorithm(colors, {
             name    : 'vivid',
             weight  : 1.0,
             xRange  : [20, 80],
@@ -519,7 +545,7 @@ module.exports = {
      */
     applyLightColorScore: function(colors){
 
-        this.applyBoxedAlgorithm(colors, {
+        this.applyBoxAlgorithm(colors, {
             name    : 'light',
             weight  : 0.4,
             xRange  : [60, 100],
@@ -542,7 +568,7 @@ module.exports = {
      */
     applyDarkColorScore: function(colors){
 
-        this.applyBoxedAlgorithm(colors, {
+        this.applyBoxAlgorithm(colors, {
             name    : 'dark',
             weight  : 0.4,
             xRange  : [0, 40],
@@ -668,7 +694,7 @@ module.exports = {
             } else {
 
                 // set a max color count
-                var maxPaletteColors = 48;
+                var maxPaletteColors = 24;
 
                 // reduce image colors
                 image = image.noProfile().bitdepth(8).colors(maxPaletteColors);
@@ -754,6 +780,95 @@ module.exports = {
     },
 
     /**
+     * get euclidian distance between two arrays
+     *
+     * @private
+     * @param {Array} arr1
+     * @param {Array} arr2
+     * @return {Integer}
+     */
+    getEuclidianDistance: function(arr1, arr2){
+
+        // vars
+        var i,
+            d = 0,
+            l = arr1.length;;
+
+        // loop
+        for (i = 0; i < arr1.length; i++){
+
+            // difference to the power of 2
+            d += Math.pow(arr1[i] - arr2[i], 2);
+        }
+
+        // square root of total
+        d = Math.sqrt(d);
+
+        // euclidian distance
+        return d;
+
+    },
+
+    /**
+     * convert color to the closest palette color
+     *
+     * @param {Object} color
+     * @param {Array} palette
+     * @return {Object}
+     */
+    convertToClosestColor: function(color, palette){
+
+        // extract and build RGB from the palette colors
+        // note: this is for the color-diff module which requires UPPERCASE keys)
+        var rgb = [];
+        palette.forEach(function(paletteColor){
+            rgb.push({
+                R : paletteColor.rgb.r,
+                G : paletteColor.rgb.g,
+                B : paletteColor.rgb.b 
+            });
+        });
+
+        // get closest color
+        var closestColor = diff.closest({
+            R : color.rgb.r,
+            G : color.rgb.g,
+            B : color.rgb.b 
+        }, rgb);
+
+        // get closest palette color
+        var closestPaletteColor;
+        palette.forEach(function(paletteColor){
+            if (paletteColor.rgb.r === closestColor.R && paletteColor.rgb.g === closestColor.G && paletteColor.rgb.b === closestColor.B){
+                closestPaletteColor = paletteColor;
+            }
+        });
+
+        // build a complete closest color profile
+        var completeColor = this.buildColorProfile(closestPaletteColor.hex);
+
+        // create final color object
+        var finalColor = extend(closestPaletteColor, {
+            hex         : completeColor.hex,
+            labelHex    : completeColor.labelHex,
+            rgb         : completeColor.rgb,
+            cmyk        : completeColor.cmyk,
+            hsv         : completeColor.hsv,
+            hsl         : completeColor.hsl,
+            luminance   : completeColor.luminance,
+            family      : closestPaletteColor.family ? closestPaletteColor.family : color.family,
+            pixels      : color.pixels,
+            percent     : color.percent,
+            score       : color.score,
+            original    : color
+        });
+
+        // done
+        return finalColor;
+
+    },
+
+    /**
      * extract predominant colors from an image file
      *
      * Usage:
@@ -810,60 +925,34 @@ module.exports = {
      */
     convert: function(oldColors, palettePath, callback){
 
+        // delegate
+        var delegate = this;
+
         // get palette status
         var paletteStats = fs.lstatSync(palettePath);
 
         // confirm that file exists
         if (paletteStats.isFile()){
 
-            // get json
+            // get palette from JSON
             var palette = JSON.parse(fs.readFileSync(palettePath, 'utf8'));
 
             // matched custom colors
-            var customdata = [];
+            var convertedColors = [];
 
             // process each extracted color
-            oldColors.forEach(function(color){
+            oldColors.forEach(function(oldColor){
 
-                // record distance calculations
-                var minimum = 9999;
-                var closest;
+                // get the closest color
+                var closestColor = delegate.convertToClosestColor(oldColor, palette);
 
-                // calculate distance plots to determine the closest possible palette match
-                palette.forEach(function(paletteColor){
+                // save closest color
+                convertedColors.push(closestColor);
 
-                    // calculate color deltas
-                    var deltaR = color.rgb.r - paletteColor.rgb.r;
-                    var deltaG = color.rgb.g - paletteColor.rgb.g;
-                    var deltaB = color.rgb.b - paletteColor.rgb.b;
-
-                    // calculate distance between extracted color and palette color
-                    var distance = Math.sqrt((deltaR * deltaR) + (deltaG * deltaG) + (deltaB * deltaB));
-
-                    // remember closest color distance proximity
-                    if (distance < minimum){
-                        minimum = distance;
-                        closest = paletteColor;
-
-                        // calculate a custom color scale value (useful for custom sorting)
-                        closest.scale = Math.round((Math.sqrt(closest.rgb.r + closest.rgb.g + closest.rgb.b))*100)/100;
-                    }
-
-                });
-
-                // combine color attributes to allow custom palettes to be partial
-                for (var key in color){
-                    if (closest[key] === undefined){
-                        closest[key] = color[key];
-                    }
-                }
-
-                // add closest color
-                customdata.push(closest);
             });
 
             // done
-            callback(undefined, customdata);
+            callback(undefined, convertedColors);
 
         } else {
 
