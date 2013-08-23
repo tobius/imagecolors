@@ -13,7 +13,6 @@ module.exports = {
     /**
      * convert image path to image object
      *
-     * @private
      * @param {String} path
      * @param {Function} callback
      */
@@ -36,7 +35,6 @@ module.exports = {
     /**
      * build a complete color profile from a hex value
      *
-     * @private
      * @param {String} hex
      * @return {Object}
      */
@@ -79,7 +77,6 @@ module.exports = {
     /**
      * extract all colors from an image file
      *
-     * @private
      * @param {Object} image
      * @param {Function} callback
      */
@@ -160,7 +157,6 @@ module.exports = {
     /**
      * assign color families to colors
      *
-     * @private
      * @param {Array} colors
      * @param {Function} callback
      */
@@ -279,7 +275,6 @@ module.exports = {
     /**
      * merge similar colors together
      *
-     * @private
      * @param {Array} colors
      * @return {Array}
      */
@@ -366,7 +361,6 @@ module.exports = {
     /**
      * sort colors by score value
      *
-     * @private
      * @param {Array} colors
      * @param {String} key
      * @param {String} key2 (optional)
@@ -421,7 +415,6 @@ module.exports = {
      *     getY     : function(o){ return o.targetProperty; }
      * }
      *
-     * @private
      * @param {Array} colors
      * @param {Object} options
      * @return
@@ -494,7 +487,6 @@ module.exports = {
     /**
      * apply center color score to color collection
      *
-     * @private
      * @param {Array} colors
      * @return
      */
@@ -516,7 +508,6 @@ module.exports = {
     /**
      * apply vivid color score to color collection
      *
-     * @private
      * @param {Array} colors
      * @return
      */
@@ -539,7 +530,6 @@ module.exports = {
     /**
      * apply light color score to color collection
      *
-     * @private
      * @param {Array} colors
      * @return
      */
@@ -562,7 +552,6 @@ module.exports = {
     /**
      * apply dark color score to color collection
      *
-     * @private
      * @param {Array} colors
      * @return
      */
@@ -585,7 +574,6 @@ module.exports = {
     /**
      * apply density color score to color collection
      *
-     * @private
      * @param {Array} colors
      * @return
      */
@@ -608,7 +596,6 @@ module.exports = {
     /**
      * apply family color score to color collection
      *
-     * @private
      * @param {Array} colors
      * @return
      */
@@ -652,7 +639,6 @@ module.exports = {
     /**
      * apply average color score to color collection
      *
-     * @private
      * @param {Array} colors
      * @return
      */
@@ -674,7 +660,6 @@ module.exports = {
      * extract the most prominent colors from an image file
      * note: will return up to 24 prominent colors
      *
-     * @private
      * @param {String} path
      * @param {Function} callback
      */
@@ -782,7 +767,6 @@ module.exports = {
     /**
      * get euclidian distance between two arrays
      *
-     * @private
      * @param {Array} arr1
      * @param {Array} arr2
      * @return {Integer}
@@ -885,9 +869,9 @@ module.exports = {
      *     }
      * });
      *
-     * @param [String] imagePath
-     * @param [Integer] maxColors
-     * @param [Function] callback
+     * @param {String} imagePath
+     * @param {Integer} maxColors
+     * @param {Function} callback
      */
     extract: function(imagePath, maxColors, callback){
 
@@ -919,9 +903,9 @@ module.exports = {
      *     }
      * });
      *
-     * @param [Array] oldColors
-     * @param [String] palettePath
-     * @param [Function] callback
+     * @param {Array} oldColors
+     * @param {String} palettePath
+     * @param {Function} callback
      */
     convert: function(oldColors, palettePath, callback){
 
