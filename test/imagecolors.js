@@ -5,7 +5,7 @@ var assets = [__dirname + '/octocat.png', 'http://octodex.github.com/images/orig
 
 assets.forEach(function(asset){
 
-    imagecolors.extract(asset, 10, function(err, colors){
+    imagecolors.extract(asset, 8, function(err, colors){
 
         // extraction error
         if (err){
@@ -14,7 +14,7 @@ assets.forEach(function(asset){
         }
 
         // run tests
-        assert.ok(colors.length === 10);
+        assert.ok(colors.length === 8);
         assert.ok(colors[0].pixels);
         assert.ok(colors[0].hex);
         assert.ok(colors[0].labelHex);
@@ -36,7 +36,7 @@ assets.forEach(function(asset){
             }
 
             // run tests
-            assert.ok(colors.length === 10);
+            assert.ok(colors.length === 8);
             assert.ok(colors[0].pixels);
             assert.ok(colors[0].hex);
             assert.ok(colors[0].labelHex);
