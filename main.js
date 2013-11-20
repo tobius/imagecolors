@@ -40,26 +40,28 @@ module.exports = {
      */
     buildColorProfile: function(hex){
 
+        var obj, rgb, hsv, hsl, cmyk, luminance, labelHex;
+
         // color object
-        var obj = color(hex);
+        obj = color(hex);
 
         // rgb value
-        var rgb = obj.rgb();
+        rgb = obj.rgb();
 
         // hsv value
-        var hsv = obj.hsv();
+        hsv = obj.hsv();
 
         // hsl value
-        var hsl = obj.hsl();
+        hsl = obj.hsl();
 
         // cmyk value
-        var cmyk = obj.cmyk();
+        cmyk = obj.cmyk();
 
         // luminance
-        var luminance = Math.round(parseFloat((rgb.r * 0.2126 + rgb.g * 0.7152 + rgb.b * 0.0722) * (1 / 255)).toFixed(2) * 100);
+        luminance = Math.round(parseFloat((rgb.r * 0.2126 + rgb.g * 0.7152 + rgb.b * 0.0722) * (1 / 255)).toFixed(2) * 100);
 
         // label hex value
-        var labelHex = (luminance < 45) ? '#BBBBBB' : '#444444';
+        labelHex = (luminance < 45) ? '#BBBBBB' : '#444444';
 
         // done
         return {
@@ -104,14 +106,16 @@ module.exports = {
                 // extract color data from histogram
                 stdout.addListener('close', function(){
 
+                    var colors, chunks, parts, hex, color, pixels;
+
                     // color objects
-                    var colors = [];
+                    colors = [];
 
                     // limit histogram to pixel data
                     histogram = histogram.replace(/\s+/g, '').replace(/^.+?comment=\{([^\}]+?)\}.+?$/, '$1');
 
                     // extract pixel data chunks
-                    var chunks = histogram.match(/(\d+):\(([\d,]+)\)#([A-F0-9]{6})/g);
+                    chunks = histogram.match(/(\d+):\(([\d,]+)\)#([A-F0-9]{6})/g);
 
                     if (chunks){
 
@@ -119,16 +123,16 @@ module.exports = {
                         chunks.forEach(function(chunk){
 
                             // break chunk into important parts
-                            var parts  = /^(\d+):\(([\d,]+)\)#([A-f0-9]{6})$/.exec(chunk);
+                            parts  = /^(\d+):\(([\d,]+)\)#([A-f0-9]{6})$/.exec(chunk);
 
                             // hex value
-                            var hex = '#' + parts[3];
+                            hex = '#' + parts[3];
 
                             // build color
-                            var color = delegate.buildColorProfile(hex);
+                            color = delegate.buildColorProfile(hex);
 
                             // number of pixels
-                            var pixels = parseInt(parts[1]);
+                            pixels = parseInt(parts[1]);
 
                             // organize results
                             colors.push({
@@ -241,14 +245,14 @@ module.exports = {
                             if (color.hsl[key] >= f[key][0] || color.hsl[key] <= f[key][1]){
 
                                 // range match
-                                trifecta++;
+                                trifecta += 1;
 
                             }
 
                         } else if (color.hsl[key] >= f[key][0] && color.hsl[key] <= f[key][1]){
 
                             // range match
-                            trifecta++;
+                            trifecta += 1;
 
                         }
 
@@ -287,18 +291,27 @@ module.exports = {
      */
     mergeSimilarColors: function(colors){
 
+        var i, j, delegate, toleranceMax, toleranceThreshold, pixels, absorbedColors, dominantColors, distance, color1, color2, keepDominantColor;
+
         // delegate
-        var delegate = this;
+        delegate = this;
 
         // set similarity tolerance thresholds
-        var toleranceMax = 50;
-        var toleranceThreshold = 0;
+        toleranceMax = 50;
+        toleranceThreshold = 0;
 
         // count total number of pixels
-        var pixels = 0;
+        pixels = 0;
         colors.forEach(function(color){
             pixels += color.pixels;
         });
+
+        // keep dominant colors
+        keepDominantColor = function(color){
+            if (!_.contains(absorbedColors, color.hex)){
+                dominantColors.push(color);
+            }
+        };
 
         // combine similar colors together
         while(true){
@@ -307,19 +320,23 @@ module.exports = {
             toleranceThreshold += 1;
 
             // track the absorbed colors
-            var absorbedColors = [];
+            absorbedColors = [];
 
             // baseline color matrix
-            colors.forEach(function(color1){
+            for (i = colors.length - 1; i > -1; i -= 1){
+
+                color1 = colors[i];
 
                 // comparison color matrix
-                colors.forEach(function(color2){
+                for (j = colors.length - 1; j > -1; j -= 1){
+
+                    color2 = colors[j];
 
                     // process colors that haven't been through this pass
                     if (!_.contains(absorbedColors, color1.hex) && !_.contains(absorbedColors, color2.hex)){
 
                         // calculate tolerance
-                        var distance = delegate.getEuclidianDistance(_.values(color1.rgb), _.values(color2.rgb));
+                        distance = delegate.getEuclidianDistance(_.values(color1.rgb), _.values(color2.rgb));
                         
                         if (distance <= toleranceThreshold){
 
@@ -337,9 +354,9 @@ module.exports = {
 
                     }
 
-                });
+                }
 
-            });
+            }
 
             // color absorption has run its course
             if (colors.length === (colors.length - absorbedColors.length) && toleranceThreshold >= toleranceMax){
@@ -347,14 +364,8 @@ module.exports = {
             }
 
             // keep the dominant colors
-            var dominantColors = [];
-
-            // forget the colors that were absorbed
-            colors.forEach(function(color){
-                if (!_.contains(absorbedColors, color.hex)){
-                    dominantColors.push(color);
-                }
-            });
+            dominantColors = [];
+            colors.forEach(keepDominantColor);
 
             // reset color base
             colors = dominantColors;
@@ -432,18 +443,20 @@ module.exports = {
 
             colors.forEach(function(color){
 
-                var score           = 0;
-                var xValue          = options.getX(color);
-                var yValue          = options.getY(color);
+                var score, xValue, yValue, x, y, xScaleLeft, xScaleRight, yScaleTop, yScaleBottom;
+
+                score  = 0;
+                xValue = options.getX(color);
+                yValue = options.getY(color);
 
                 if (xValue > options.xRange[0] && xValue < options.xRange[1] && yValue > options.yRange[0] && yValue < options.yRange[1]){
 
-                    var x = (xValue === options.xTarget) ? 100 : 0;
+                    x = (xValue === options.xTarget) ? 100 : 0;
 
                     if (x !== 100){
 
-                        var xScaleLeft      = options.xTarget - options.xRange[0];
-                        var xScaleRight     = options.xRange[1] - options.xTarget;
+                        xScaleLeft      = options.xTarget - options.xRange[0];
+                        xScaleRight     = options.xRange[1] - options.xTarget;
 
                         if (xValue < options.xTarget){
 
@@ -457,12 +470,12 @@ module.exports = {
 
                     }
 
-                    var y = (yValue === options.yTarget) ? 100 : 0;
+                    y = (yValue === options.yTarget) ? 100 : 0;
 
                     if (y !== 100){
 
-                        var yScaleTop       = options.yTarget - options.yRange[0];
-                        var yScaleBottom    = options.yRange[1] - options.yTarget;
+                        yScaleTop       = options.yTarget - options.yRange[0];
+                        yScaleBottom    = options.yRange[1] - options.yTarget;
 
                         if (yValue < options.yTarget){
 
@@ -586,9 +599,12 @@ module.exports = {
      */
     applyDensityColorScore: function(colors){
 
-        var pixels = 0;
-        var weight = 0.5;
-        var minimum = 0.30;
+        var pixels, weight, minimum;
+
+        pixels = 0;
+        weight = 0.5;
+        minimum = 0.30;
+
         colors.forEach(function(color){
             if (color.percent > minimum){
                 color.score.density = Math.round(color.percent * weight);
@@ -596,6 +612,7 @@ module.exports = {
                 color.score.density = 0;
             }
         });
+
         return;
 
     },
@@ -608,6 +625,8 @@ module.exports = {
      */
     applyFamilyColorScore: function(colors){
 
+        var families, minimumDensity;
+
         // ensure averages exist
         this.applyAverageColorScore(colors);
 
@@ -615,14 +634,14 @@ module.exports = {
         this.sortColorsByScore(colors, 'average');
 
         // get color families and reset family score
-        var families = [];
+        families = [];
         colors.forEach(function(color){
             families.push(color.family);
             color.score.familyAverage = 0;
         });
 
         // up first, down remaining
-        var minimumDensity = 0.30;
+        minimumDensity = 0.30;
         families.forEach(function(family){
             var multiplier = 1.5;
             colors.forEach(function(color){
@@ -652,8 +671,9 @@ module.exports = {
     applyAverageColorScore: function(colors){
 
         colors.forEach(function(color){
-            var total = 0;
-            var scores = _.values(color.score);
+            var total, scores;
+            total = 0;
+            scores = _.values(color.score);
             scores.forEach(function(score){
                 total += score;
             });
@@ -780,13 +800,13 @@ module.exports = {
      */
     getEuclidianDistance: function(arr1, arr2){
 
-        // vars
-        var i,
-            d = 0,
-            l = arr1.length;;
+        var i, d, l;
+
+        d = 0;
+        l = arr1.length;
 
         // loop
-        for (i = 0; i < arr1.length; i++){
+        for (i = 0; i < arr1.length; i += 1){
 
             // difference to the power of 2
             d += Math.pow(arr1[i] - arr2[i], 2);
@@ -809,9 +829,11 @@ module.exports = {
      */
     convertToClosestColor: function(color, palette){
 
+        var rgb, closestColor, closestPaletteColor, completeColor, finalColor;
+
         // extract and build RGB from the palette colors
         // note: this is for the color-diff module which requires UPPERCASE keys)
-        var rgb = [];
+        rgb = [];
         palette.forEach(function(paletteColor){
             rgb.push({
                 R : paletteColor.rgb.r,
@@ -821,14 +843,13 @@ module.exports = {
         });
 
         // get closest color
-        var closestColor = diff.closest({
+        closestColor = diff.closest({
             R : color.rgb.r,
             G : color.rgb.g,
             B : color.rgb.b 
         }, rgb);
 
         // get closest palette color
-        var closestPaletteColor;
         palette.forEach(function(paletteColor){
             if (paletteColor.rgb.r === closestColor.R && paletteColor.rgb.g === closestColor.G && paletteColor.rgb.b === closestColor.B){
                 closestPaletteColor = paletteColor;
@@ -836,10 +857,10 @@ module.exports = {
         });
 
         // build a complete closest color profile
-        var completeColor = this.buildColorProfile(closestPaletteColor.hex);
+        completeColor = this.buildColorProfile(closestPaletteColor.hex);
 
         // create final color object
-        var finalColor = extend(closestPaletteColor, {
+        finalColor = extend(closestPaletteColor, {
             hex         : completeColor.hex,
             labelHex    : completeColor.labelHex,
             rgb         : completeColor.rgb,
@@ -916,11 +937,13 @@ module.exports = {
      */
     convert: function(oldColors, palettePath, callback){
 
+        var delegate, paletteStats, palette, convertedColors;
+
         // delegate
-        var delegate = this;
+        delegate = this;
 
         // get palette status
-        var paletteStats = fs.lstatSync(palettePath);
+        paletteStats = fs.lstatSync(palettePath);
 
         // confirm that file exists
         if (paletteStats.isFile()){
@@ -928,10 +951,10 @@ module.exports = {
             try {
 
                 // get palette from JSON
-                var palette = JSON.parse(fs.readFileSync(palettePath, 'utf8'));
+                palette = JSON.parse(fs.readFileSync(palettePath, 'utf8'));
 
                 // matched custom colors
-                var convertedColors = [];
+                convertedColors = [];
 
                 // process each extracted color
                 oldColors.forEach(function(oldColor){

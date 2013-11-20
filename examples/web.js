@@ -8,7 +8,7 @@ var _           = require('underscore'),
 
 // template
 var head = fs.readFileSync(__dirname + '/templates/head.tmpl', 'utf8');
-    foot = fs.readFileSync(__dirname + '/templates/foot.tmpl', 'utf8');
+var foot = fs.readFileSync(__dirname + '/templates/foot.tmpl', 'utf8');
 
 // configure
 app.configure(function(){
@@ -21,7 +21,7 @@ app.configure(function(){
         // find photos
         photos = [];
         files = fs.readdirSync(__dirname + '/public/photos/');
-        for(i = files.length - 1; i > -1; i--){
+        for(i = files.length - 1; i > -1; i -= 1){
             if (/\.(gif|jpg|jpeg|png)$/i.test(files[i])){
                 photos.push(files[i]);
             }
@@ -29,7 +29,7 @@ app.configure(function(){
 
         // generate menu
         menu = '';
-        for(i = photos.length - 1; i > -1; i--){
+        for(i = photos.length - 1; i > -1; i -= 1){
             menu += '<li><a href="/example.html?photo=' + photos[i] + '">' + photos[i] + '</a></li>';
         }
 
@@ -55,7 +55,7 @@ app.configure(function(){
                     body += '</div>';
                 });
                 body += '</div><div style="clear:both; height:30px;"></div>';
-                body += '<strong>Output</strong><div class="json">' + JSON.stringify(colors, null, 4) + '</div>'
+                body += '<strong>Output</strong><div class="json">' + JSON.stringify(colors, null, 4) + '</div>';
                 body += '<div style="clear:both;"></div>';
 
                 res.send(head + body + foot);
