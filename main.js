@@ -113,38 +113,45 @@ module.exports = {
                     // extract pixel data chunks
                     var chunks = histogram.match(/(\d+):\(([\d,]+)\)#([A-F0-9]{6})/g);
 
-                    // split pixel data chunks into pixel objects
-                    chunks.forEach(function(chunk){
+                    if (chunks){
 
-                        // break chunk into important parts
-                        var parts  = /^(\d+):\(([\d,]+)\)#([A-f0-9]{6})$/.exec(chunk);
+                        // split pixel data chunks into pixel objects
+                        chunks.forEach(function(chunk){
 
-                        // hex value
-                        var hex = '#' + parts[3];
+                            // break chunk into important parts
+                            var parts  = /^(\d+):\(([\d,]+)\)#([A-f0-9]{6})$/.exec(chunk);
 
-                        // build color
-                        var color = delegate.buildColorProfile(hex);
+                            // hex value
+                            var hex = '#' + parts[3];
 
-                        // number of pixels
-                        var pixels = parseInt(parts[1]);
+                            // build color
+                            var color = delegate.buildColorProfile(hex);
 
-                        // organize results
-                        colors.push({
-                            pixels      : pixels,
-                            luminance   : color.luminance,
-                            hex         : hex,
-                            labelHex    : color.labelHex,
-                            rgb         : color.rgb,
-                            hsv         : color.hsv,
-                            hsl         : color.hsl,
-                            cmyk        : color.cmyk,
-                            score       : {}
+                            // number of pixels
+                            var pixels = parseInt(parts[1]);
+
+                            // organize results
+                            colors.push({
+                                pixels      : pixels,
+                                luminance   : color.luminance,
+                                hex         : hex,
+                                labelHex    : color.labelHex,
+                                rgb         : color.rgb,
+                                hsv         : color.hsv,
+                                hsl         : color.hsl,
+                                cmyk        : color.cmyk,
+                                score       : {}
+                            });
+
                         });
 
-                    });
+                        // color extraction complete
+                        callback(undefined, colors);
 
-                    // color extraction complete
-                    callback(undefined, colors);
+                    } else {
+
+                        callback('Histogram extraction failed');
+                    }
 
                 });
 
@@ -918,25 +925,34 @@ module.exports = {
         // confirm that file exists
         if (paletteStats.isFile()){
 
-            // get palette from JSON
-            var palette = JSON.parse(fs.readFileSync(palettePath, 'utf8'));
+            try {
 
-            // matched custom colors
-            var convertedColors = [];
+                // get palette from JSON
+                var palette = JSON.parse(fs.readFileSync(palettePath, 'utf8'));
 
-            // process each extracted color
-            oldColors.forEach(function(oldColor){
+                // matched custom colors
+                var convertedColors = [];
 
-                // get the closest color
-                var closestColor = delegate.convertToClosestColor(oldColor, palette);
+                // process each extracted color
+                oldColors.forEach(function(oldColor){
 
-                // save closest color
-                convertedColors.push(closestColor);
+                    // get the closest color
+                    var closestColor = delegate.convertToClosestColor(oldColor, palette);
 
-            });
+                    // save closest color
+                    convertedColors.push(closestColor);
 
-            // done
-            callback(undefined, convertedColors);
+                });
+
+                // done
+                callback(undefined, convertedColors);
+
+            } catch(e){
+
+                // invalid json
+                callback('Invalid JSON');
+
+            }
 
         } else {
 
