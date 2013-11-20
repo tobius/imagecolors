@@ -22,7 +22,7 @@ var imagecolors = require('imagecolors');
 /**
  * extract predominant colors from image
  * note: maximum is currently capped at 96, need to do load testing before raising
- * usage: extract(imagePath, numColors)
+ * usage: extract(imagePath, numColors, callback)
  */
 imagecolors.extract('./photo.jpg', 6, function(err, colors){
     if (!err){
@@ -33,7 +33,7 @@ imagecolors.extract('./photo.jpg', 6, function(err, colors){
 
     /**
      * convert colors to a custom palete
-     * usage: convert(color_object, palette_json)
+     * usage: convert(color_object, palette_json, callback)
      */
     imagecolors.convert(colors, './palette.json', function(err, colors){
         if (!err){
