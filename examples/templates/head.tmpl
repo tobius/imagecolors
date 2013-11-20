@@ -1,10 +1,11 @@
 <html>
 <head>
-<title>imagecolors</title>
+<title>examples</title>
 <style type="text/css">
 
 html {
     background-color : #efefef;
+    background-image:url(/images/notebook.png);
 }
 
 body {
@@ -31,12 +32,21 @@ div.container {
     width : 100%;
 }
 
-div {
+div.container > div {
     float : left;
     width : 550px;
     clear : right;
     margin : 0 0 0 400px;
     padding : 10px;
+}
+
+div.json {
+    font-family: monospace;
+    padding:10px;
+    white-space: pre;
+    color: #ccc;
+    background-color: #333;
+    width: 950px;
 }
 
 strong {
