@@ -8,7 +8,6 @@ A node module that pulls useful color information out of an image through a comb
 You can install via NPM.
 
 ```shell
-[~] mkdir node_modules && mkdir tmp
 [~] npm install imagecolors
 ```
 
@@ -65,21 +64,4 @@ This is what returned color objects look like.
     family      : 'yellow'
 }]
 ```
-
-<!--
-## Miscellaneous Examples
-
-A few examples of miscellaneous ways that you might use this data.
-
-```javascript
-// group colors by color family
-var families = {};
-colors.forEach(function(color){
-    if (families[color.family] === undefined){
-        families[color.family] = [];
-    }
-    families[color.family].push(color);
-});
-```
--->
 
