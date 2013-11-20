@@ -1,15 +1,40 @@
 
-var assert, chai, imagecolors, testcolors;
+var assert, chai, imagecolors, spawn, testcolors;
 
 // modules
 chai        = require('chai');
 imagecolors = require(__dirname + '/../main.js');
+spawn       = require('child_process').spawn;
 
 // enable stack traces
 chai.Assertion.includeStack = true;
 
 // use chai assert
 assert = chai.assert;
+
+describe('imagemagick', function(){
+
+    it('should be installed', function(done){
+
+        // most of this module is based on imagemagick
+        var convert = spawn('convert', ['--version']);
+
+        // bad
+        convert.on('error', function(huh){
+            console.log('brew install imagemagick');
+            assert.ok(false);
+            done();
+        });
+
+        // good
+        convert.on('close', function(code){
+            assert.ok(true);
+            done();
+        });
+
+    });
+
+});
 
 describe('require("imagecolors")', function(){
 
