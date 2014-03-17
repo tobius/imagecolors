@@ -709,7 +709,7 @@ module.exports = {
                 var maxPaletteColors = 24;
 
                 // reduce image colors
-                image = image.noProfile().bitdepth(8).colors(maxPaletteColors);
+                image = image.noProfile().bitdepth(8).colorspace('YCbCr').colors(maxPaletteColors).colorspace('sRGB');
 
                 // extract color data
                 delegate.extractAllColors(image, function(err, colors){

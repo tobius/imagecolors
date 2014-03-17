@@ -1,7 +1,7 @@
 {
   "name": "imagecolors",
   "description": "A node module that pulls useful color information out of an image through a combination of ImageMagick color quantization algorithms and human fiddling.",
-  "version": "0.10.4",
+  "version": "0.10.5",
   "author": "Toby Miller <tobius.miller@gmail.com>",
   "keywords": [
     "color",
