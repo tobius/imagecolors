@@ -17,19 +17,17 @@ module.exports = {
      * @param {Function} callback
      */
     convertPathToImage: function(path, callback){
-
-        if (path.match(/^htt/) || fs.lstatSync(path).isFile()){
-
-            // path is valid
-            callback(undefined, im(path));
-
-        } else {
-
-            // unable to quantify image path
-            callback('Unable to quantify image path', undefined);
-
-        }
-
+        fs.lstat(path, function(err, stats) {
+            if (err){
+                return callback(err,null); 
+            };
+            if (path.match(/^htt/) || stats.isFile()){
+                return callback(undefined, im(path));
+            }
+            else {
+                callback(new Error('Unable to quantify image path'), null);    
+            }
+        });
     },
 
     /**
