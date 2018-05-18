@@ -1,6 +1,6 @@
 
 // express
-var _           = require('underscore'),
+var _           = require('lodash'),
     express     = require('express'),
     fs          = require('fs'),
     imagecolors = require('imagecolors'),

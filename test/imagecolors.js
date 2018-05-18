@@ -97,7 +97,7 @@ describe('require("imagecolors")', function(){
 
         it('should extract valid color properties from a remote image', function(done){
 
-            var asset = 'http://octodex.github.com/images/original.png';
+            var asset = 'https://octodex.github.com/images/original.png';
 
             imagecolors.extract(asset, 8, function(err, colors){
 

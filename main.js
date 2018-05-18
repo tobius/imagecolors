@@ -1,5 +1,5 @@
 // required modules
-var _ = require('underscore'),
+var _ = require('lodash'),
     color = require('color'),
     diff = require('color-diff'),
     extend = require('util')._extend,
@@ -47,15 +47,36 @@ module.exports = {
 
         // rgb value
         rgb = obj.rgb();
+		rgb = {
+			r: rgb.color[0],
+			g: rgb.color[1],
+			b: rgb.color[2]
+		};
 
         // hsv value
         hsv = obj.hsv();
+		hsv = {
+			h: hsv.color[0],
+			s: hsv.color[1],
+			v: hsv.color[2]
+		};
 
         // hsl value
         hsl = obj.hsl();
+		hsl = {
+			h: hsl.color[0],
+			s: hsl.color[1],
+			l: hsl.color[2]
+		};
 
         // cmyk value
         cmyk = obj.cmyk();
+		cmyk = {
+			c: cmyk.color[0],
+			m: cmyk.color[1],
+			y: cmyk.color[2],
+			k: cmyk.color[3]
+		};
 
         // luminance
         luminance = Math.round(parseFloat((rgb.r * 0.2126 + rgb.g * 0.7152 + rgb.b * 0.0722) * (1 / 255)).toFixed(2) * 100);
@@ -211,7 +232,7 @@ module.exports = {
             { name : 'blue',            h : [166,195],  s : [1,100],    l : [10,88]     },  // cyan -> blue
             { name : 'blue',            h : [196,225],  s : [1,100],    l : [10,100]    },  // blue-cyan -> blue
             { name : 'blue',            h : [226,255],  s : [1,100],    l : [10,84]     },  // blue
-            
+
             // neutral family
             { name : 'light',           h : [0,360],    s : [0,100],    l : [85,100]    },  // light
             { name : 'neutral',         h : [0,360],    s : [0,100],     l : [16,100]    },  // neutral
@@ -254,7 +275,7 @@ module.exports = {
                             // range match
                             trifecta += 1;
 
-                        }
+						}
 
                     });
 
@@ -308,7 +329,7 @@ module.exports = {
 
         // keep dominant colors
         keepDominantColor = function(color){
-            if (!_.contains(absorbedColors, color.hex)){
+            if (!_.includes(absorbedColors, color.hex)){
                 dominantColors.push(color);
             }
         };
@@ -333,11 +354,11 @@ module.exports = {
                     color2 = colors[j];
 
                     // process colors that haven't been through this pass
-                    if (!_.contains(absorbedColors, color1.hex) && !_.contains(absorbedColors, color2.hex)){
+                    if (!_.includes(absorbedColors, color1.hex) && !_.includes(absorbedColors, color2.hex)){
 
                         // calculate tolerance
                         distance = delegate.getEuclidianDistance(_.values(color1.rgb), _.values(color2.rgb));
-                        
+
                         if (distance <= toleranceThreshold){
 
                             // colors are similar, absorb them
@@ -653,7 +674,7 @@ module.exports = {
                 }
             });
         });
-        
+
         // sort by family average
         this.sortColorsByScore(colors, 'familyAverage', 'average');
 
@@ -699,7 +720,7 @@ module.exports = {
         this.convertPathToImage(path, function(err, image){
 
             if (err){
-                
+
                 // image failed
                 callback(err, undefined);
 
@@ -743,7 +764,7 @@ module.exports = {
                             colors.forEach(function(color){
 
                                 // find pre-built family
-                                var family = _.findWhere(families, { name : color.family });
+                                var family = _.find(families, { name : color.family });
 
                                 if (!family){
 
@@ -838,7 +859,7 @@ module.exports = {
             rgb.push({
                 R : paletteColor.rgb.r,
                 G : paletteColor.rgb.g,
-                B : paletteColor.rgb.b 
+                B : paletteColor.rgb.b
             });
         });
 
@@ -846,7 +867,7 @@ module.exports = {
         closestColor = diff.closest({
             R : color.rgb.r,
             G : color.rgb.g,
-            B : color.rgb.b 
+            B : color.rgb.b
         }, rgb);
 
         // get closest palette color

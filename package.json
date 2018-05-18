@@ -1,7 +1,7 @@
 {
   "name": "imagecolors",
   "description": "A node module that pulls useful color information out of an image through a combination of ImageMagick color quantization algorithms and human fiddling.",
-  "version": "0.10.5",
+  "version": "0.10.6",
   "author": "Toby Miller <tobius.miller@gmail.com>",
   "keywords": [
     "color",
@@ -18,13 +18,13 @@
     "url": "git://github.com/tobius/imagecolors.git"
   },
   "dependencies": {
-    "color": "~0.4.4",
-    "color-diff": "~0.1.3",
-    "gm": "~1.10.0",
-    "underscore": "~1.5.1"
+    "color": "^3.0.0",
+    "color-diff": "^1.1.0",
+    "gm": "^1.23.1",
+    "lodash": "^4.17.10"
   },
   "devDependencies": {
-    "chai": "~1.8.1"
+    "chai": "^4.1.2"
   },
   "scripts": {
     "test": "mocha -R spec",
