@@ -51,6 +51,13 @@ describe('require("imagecolors")', function() {
 			assert.ok(typeof imagecolors.extract === 'function');
 		});
 
+		it('should return error when a local file does not exist', function(done) {
+			imagecolors.extract('./doesnotexist.nowaynohow', 8, function(err) {
+				assert.ok(err);
+				done();
+			});
+		});
+
 		it('should extract valid color properties from a local image', function(done) {
 
 			var asset = __dirname + '/octocat.png';
