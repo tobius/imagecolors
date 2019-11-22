@@ -1,12 +1,14 @@
 {
   "name": "imagecolors",
-  "description": "A node module that pulls useful color information out of an image through a combination of ImageMagick color quantization algorithms and human fiddling.",
-  "version": "0.11.0",
-  "author": "Toby Miller <tobius.miller@gmail.com>",
+  "description": "Extract human perceivable color data out of an image through a combination of color quantization algorithms and human fiddling.",
+  "version": "0.12.0",
+  "author": "Toby Miller <tobius@tobius.com>",
   "keywords": [
     "color",
     "graphicsmagick",
     "image",
+    "image colors",
+    "imagecolors",
     "imagemagick",
     "palette",
     "quantization"
@@ -18,22 +20,22 @@
     "url": "git://github.com/tobius/imagecolors.git"
   },
   "dependencies": {
-    "color": "^3.0.0",
+    "color": "^3.1.2",
     "color-diff": "^1.1.0",
     "gm": "^1.23.1",
-    "lodash": "^4.17.10"
+    "lodash": "^4.17.15"
   },
   "devDependencies": {
-    "chai": "^4.1.2",
-    "eslint": "^4.19.1"
+    "chai": "^4.2.0",
+    "eslint": "^6.6.0"
   },
   "scripts": {
     "start": "node index",
-    "test": "mocha -R spec",
-    "lint": "./node_modules/eslint/bin/eslint.js . --ext .js --max-warnings=0"
+    "test": "npx mocha -R spec",
+    "lint": "npx eslint . --ext .js --max-warnings=0"
   },
   "engines": {
-    "node": "~0.10.5"
+    "node": "~12.13.0"
   },
   "readmeFilename": "README.md",
   "gitHead": "a228a77cab3cbb4be86469acb3e18a08851c7178",

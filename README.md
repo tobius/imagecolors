@@ -1,14 +1,14 @@
 
 # imagecolors
 
-A node module that pulls useful color information out of an image through a combination of ImageMagick color quantization algorithms and human fiddling.
+Extract human perceivable color data out of an image through a combination of color quantization algorithms and human fiddling.
 
 ## Install
 
 You can install via NPM.
 
 ```shell
-[~] npm install imagecolors
+[~] npm i imagecolors
 ```
 
 ## Usage

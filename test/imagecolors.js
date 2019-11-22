@@ -8,7 +8,7 @@ imagecolors = require(__dirname + '/../main.js');
 spawn = require('child_process').spawn;
 
 // enable stack traces
-chai.Assertion.includeStack = true;
+chai.config.includeStack = true;
 
 // use chai assert
 assert = chai.assert;
