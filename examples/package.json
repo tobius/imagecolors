@@ -6,7 +6,7 @@
   "dependencies": {
     "express": "^4.17.1",
     "imagecolors": "file:../",
-    "lodash": "^4.17.15"
+    "lodash": "^4.17.21"
   },
   "devDependencies": {},
   "scripts": {
