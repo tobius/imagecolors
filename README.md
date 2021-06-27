@@ -5,13 +5,16 @@ Use a combination of color quantization algorithms and human fiddling to get hum
 
 ## Install
 
+This module depends on ImageMagick.
+
 ```shell
+[~] brew install imagemagick
 [~] npm i imagecolors
 ```
 
 ## Usage
 
-Usage of this module is pretty versatile.
+Usage is pretty straight forward.
 
 ```javascript
 // load module
@@ -23,12 +26,13 @@ var imageColors = require('imagecolors');
  * @param {Integer} [colorCount] (default=24)
  * @param {Function} callback
  */
-let humanColors;
+const humanColors = [];
 imageColors.extract('./photo.jpg', 6, (err, colors) => {
 	if (!!err) {
 		console.error({ err: err.message });
 	} else {
-		console.log({ humanColors: colors })
+		colors = humanColors;
+		console.log({ humanColors })
 	}
 });
 
@@ -38,12 +42,13 @@ imageColors.extract('./photo.jpg', 6, (err, colors) => {
  * @param {String} palettePath
  * @param {Function} callback
  */
-let closeColors;
+const closestColors = [];
 imageColors.convert(colors, './palette.json', (err, colors) => {
 	if (!!err) {
 		console.error({ err: err.message });
 	} else {
-		console.log({ closeColors: colors })
+		closestColors = colors;
+		console.log({ closestColors })
 	}
 });
 ```
