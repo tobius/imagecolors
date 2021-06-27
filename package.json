@@ -28,12 +28,14 @@
   "devDependencies": {
     "chai": "^4.3.4",
     "depcheck": "^1.4.2",
-    "eslint": "^6.8.0"
+    "eslint": "^6.8.0",
+    "eslint-config-airbnb-base": "^14.2.1",
+    "eslint-plugin-import": "^2.23.4"
   },
   "scripts": {
     "start": "node index",
     "test": "npx mocha -R spec",
-    "lint": "npx eslint . --ext .js --max-warnings=0"
+    "lint": "npx eslint . --ext js"
   },
   "engines": {
     "node": "~12.22.1"
