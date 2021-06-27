@@ -1,6 +1,6 @@
 /*eslint max-nested-callbacks: [0] */
 
-// required modules
+// modules
 var _ = require('lodash'),
 	color = require('color'),
 	diff = require('color-diff'),
@@ -143,7 +143,7 @@ module.exports = {
 				histogram = histogram.replace(/\s+/g, '').replace(/^.+?comment=\{([^\}]+?)\}.+?$/, '$1');
 
 				// extract pixel data chunks
-				chunks = histogram.match(/(\d+):\(([\d,]+)\)#([A-F0-9]{6})/g);
+				chunks = histogram.match(/(\d+):\(([\d,.]+)\)#([A-F0-9]{6})/g);
 
 				if (!chunks) {
 					return callback('Histogram extraction failed');
@@ -153,7 +153,7 @@ module.exports = {
 				chunks.forEach(function(chunk) {
 
 					// break chunk into important parts
-					parts = /^(\d+):\(([\d,]+)\)#([A-f0-9]{6})$/.exec(chunk);
+					parts = /^(\d+):\(([\d,.]+)\)#([A-f0-9]{6})$/.exec(chunk);
 
 					// hex value
 					hex = '#' + parts[3];
