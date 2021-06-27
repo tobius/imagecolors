@@ -1,17 +1,17 @@
 {
   "name": "imagecolors-examples",
   "version": "0.0.0",
-  "description": "This folder contains some examples of the imagecolors module in use.",
+  "description": "This folder contains imageColors usage examples.",
   "main": "web.js",
   "dependencies": {
     "express": "^4.17.1",
     "imagecolors": "file:../",
-    "lodash": "^4.17.15"
+    "lodash": "^4.17.21"
   },
   "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "Toby Miller <tobius@tobius.com> (https://github.com/tobius)",
+  "author": "Toby Miller <toby.miller@tobius.com> (https://github.com/tobius)",
   "license": "MIT"
 }
