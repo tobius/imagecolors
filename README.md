@@ -1,11 +1,9 @@
 
-# imagecolors
+# Image Colors
 
-Extract human perceivable color data out of an image through a combination of color quantization algorithms and human fiddling.
+Use a combination of color quantization algorithms and human fiddling to get human perceivable colors out of an image.
 
 ## Install
-
-You can install via NPM.
 
 ```shell
 [~] npm i imagecolors
@@ -13,42 +11,48 @@ You can install via NPM.
 
 ## Usage
 
-Using this module is pretty straight forward.
+Usage of this module is pretty versatile.
 
 ```javascript
 // load module
-var imagecolors = require('imagecolors');
+var imageColors = require('imagecolors');
 
 /**
- * extract predominant colors from image
- * note: maximum is currently capped at 96, need to do load testing before raising
- * usage: extract(imagePath, numColors, callback)
+ * Extract human perceivable colors from image
+ * @param {String} imagePath
+ * @param {Integer} [colorCount] (default=24)
+ * @param {Function} callback
  */
-imagecolors.extract('./photo.jpg', 6, function(err, colors){
-    if (!err){
-        console.log('EXTRACTED');
-        console.log(colors);
-        console.log();
-    }
+let humanColors;
+imageColors.extract('./photo.jpg', 6, (err, colors) => {
+	if (!!err) {
+		console.error({ err: err.message });
+	} else {
+		console.log({ humanColors: colors })
+	}
+});
 
-    /**
-     * convert colors to a custom palete
-     * usage: convert(color_object, palette_json, callback)
-     */
-    imagecolors.convert(colors, './palette.json', function(err, colors){
-        if (!err){
-            console.log('CONVERTED');
-            console.log(colors);
-        }
-    });
+/**
+ * Convert colors to the closest neighbors in a custom color palette
+ * @param {Array} colors
+ * @param {String} palettePath
+ * @param {Function} callback
+ */
+let closeColors;
+imageColors.convert(colors, './palette.json', (err, colors) => {
+	if (!!err) {
+		console.error({ err: err.message });
+	} else {
+		console.log({ closeColors: colors })
+	}
 });
 ```
 
-_Note: There are also example assets in the examples folder to help get you started._
+_Note: There are working examples in the `/examples` folder._
 
 ## Return Format
 
-This is what returned color objects look like.
+Returned color objects look like this.
 
 ```javascript
 [{
@@ -64,4 +68,3 @@ This is what returned color objects look like.
     family      : 'yellow'
 }]
 ```
-
