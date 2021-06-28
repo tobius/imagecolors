@@ -5,7 +5,6 @@ const Color = require('color');
 const diff = require('color-diff');
 const fs = require('fs');
 const gm = require('gm');
-const { _extend } = require('util');
 
 // init
 const im = gm.subClass({ imageMagick: true });
@@ -452,7 +451,8 @@ function convertToClosestColor(color, palette) {
   const completeColor = buildColorProfile(closestPaletteColor.hex);
 
   // create final color object
-  const finalColor = _extend(closestPaletteColor, {
+  const finalColor = {
+    ...closestPaletteColor,
     hex: completeColor.hex,
     labelHex: completeColor.labelHex,
     rgb: completeColor.rgb,
@@ -465,7 +465,7 @@ function convertToClosestColor(color, palette) {
     percent: color.percent,
     score: color.score,
     original: color,
-  });
+  };
 
   // done
   return finalColor;
