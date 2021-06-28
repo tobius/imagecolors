@@ -5,8 +5,7 @@
   "main": "web.js",
   "dependencies": {
     "express": "^4.17.1",
-    "imagecolors": "file:../",
-    "lodash": "^4.17.21"
+    "imagecolors": "file:../"
   },
   "devDependencies": {},
   "scripts": {

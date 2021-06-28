@@ -2,7 +2,6 @@
 
 // modules
 const Color = require('color');
-const _ = require('lodash');
 const diff = require('color-diff');
 const fs = require('fs');
 const gm = require('gm');
@@ -19,7 +18,7 @@ const im = gm.subClass({ imageMagick: true });
 function applyAverageColorScore(colors) {
   colors.forEach((color) => {
     let total = 0;
-    const scores = _.values(color.score);
+    const scores = Object.values(color.score);
     scores.forEach((score) => {
       total += score;
     });
@@ -586,7 +585,7 @@ function mergeSimilarColors(colors) {
 
   // keep dominant colors
   const keepDominantColor = (color) => {
-    if (!_.includes(absorbedColors, color.hex)) {
+    if (!absorbedColors.includes(color.hex)) {
       dominantColors.push(color);
     }
   };
@@ -608,10 +607,10 @@ function mergeSimilarColors(colors) {
         color2 = colors[j];
 
         // process colors that haven't been through this pass
-        if (!_.includes(absorbedColors, color1.hex) && !_.includes(absorbedColors, color2.hex)) {
+        if (!absorbedColors.includes(color1.hex) && !absorbedColors.includes(color2.hex)) {
 
           // calculate tolerance
-          distance = getEuclidianDistance(_.values(color1.rgb), _.values(color2.rgb));
+          distance = getEuclidianDistance(Object.values(color1.rgb), Object.values(color2.rgb));
 
           // colors are similar, absorb them
           if (distance <= toleranceThreshold && color1.percent > color2.percent) {
@@ -693,7 +692,7 @@ function extractProminentColors(path, callback) {
         // create color family collection
         const families = [];
         colors.forEach((color) => {
-          const family = _.find(families, { name: color.family });
+          const family = families.find((family) => family.name === color.family);
           if (!family) {
             families.push({
               name: color.family,
