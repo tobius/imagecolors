@@ -22,35 +22,25 @@ var imageColors = require('imagecolors');
 
 /**
  * Extract human perceivable colors from image
- * @param {String} imagePath
+ * @param {String} imagePath (file or url)
  * @param {Integer} [colorCount] (default=24)
- * @param {Function} callback
+ * @param {Function} [callback] (optional)
+ * @return {Promise<Array>} colors
  */
-const humanColors = [];
-imageColors.extract('./photo.jpg', 6, (err, colors) => {
-	if (!!err) {
-		console.error({ err: err.message });
-	} else {
-		colors = humanColors;
-		console.log({ humanColors })
-	}
-});
+imageColors.extract('./photo.jpg')
+	.then(console.log)
+	.catch(console.error);
 
 /**
  * Convert colors to the closest neighbors in a custom color palette
  * @param {Array} colors
- * @param {String} palettePath
- * @param {Function} callback
+ * @param {String} palettePath (file)
+ * @param {Function} [callback] (optional)
+ * @return {Promise<Array>} colors
  */
-const closestColors = [];
-imageColors.convert(colors, './palette.json', (err, colors) => {
-	if (!!err) {
-		console.error({ err: err.message });
-	} else {
-		closestColors = colors;
-		console.log({ closestColors })
-	}
-});
+imageColors.convert(colors, './palette.json')
+	.then(console.log)
+	.catch(console.error);
 ```
 
 _Note: There are working examples in the `/examples` folder._
