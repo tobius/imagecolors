@@ -3,7 +3,7 @@
 // modules
 const Color = require('color');
 const diff = require('color-diff');
-const fs = require('fs');
+const fs = require('fs').promises;
 const gm = require('gm');
 
 // init
@@ -248,9 +248,9 @@ function applyFamilyColorScore(colors) {
 /**
  * Assign color families to colors
  * @param {Array} colors
- * @param {Function} callback
+ * @return {Array} colors
  */
-function assignColorFamilies(colors, callback) {
+function assignColorFamilies(colors) {
   // color family algorithms using HSL
   const families = [
     // brown family
@@ -335,7 +335,7 @@ function assignColorFamilies(colors, callback) {
   });
 
   // color family assignment complete
-  callback(colors);
+  return colors;
 }
 
 /**
@@ -395,21 +395,17 @@ function buildColorProfile(hex) {
 /**
  * Convert image path to image object
  * @param {String} path
- * @param {Function} callback
+ * @return {Promise<Object>} image
  */
-function convertPathToImage(path, callback) {
+async function convertPathToImage(path) {
   if (path.match(/^htt/)) {
-    return callback(null, im(path));
+    return im(path);
   }
-  fs.lstat(path, (err, stats) => {
-    if (err) {
-      return callback(err);
-    }
-    if (stats.isFile()) {
-      return callback(null, im(path));
-    }
-    return callback(new Error('Unable to quantify image path'));
-  });
+  const stats = await fs.lstat(path);
+  if (stats.isFile()) {
+    return im(path);
+  }
+  throw new Error('Unable to quantify image path');
 }
 
 /**
@@ -474,71 +470,73 @@ function convertToClosestColor(color, palette) {
 /**
  * Extract all colors from an image file
  * @param {Object} image
- * @param {Function} callback
+ * @return {Promise<Array>} colors
  */
-function extractAllColors(image, callback) {
-  // extract histogram
-  image.stream('histogram', (err, stdout) => {
-    if (err) {
-      return callback('Unable to extract histogram data');
-    }
-
-    // capture histogram from a data stream
-    let histogram = '';
-    stdout.addListener('data', (chunk) => {
-      histogram += chunk;
-    });
-
-    // extract color data from histogram
-    stdout.addListener('close', () => {
-      let parts;
-      let hex;
-      let pixels;
-
-      // color objects
-      const colors = [];
-
-      // limit histogram to pixel data
-      histogram = histogram.replace(/\s+/g, '').replace(/^.+?comment=\{([^}]+?)\}.+?$/, '$1');
-
-      // extract pixel data chunks
-      const chunks = histogram.match(/(\d+):\(([\d,.]+)\)#([A-F0-9]{6})/g);
-
-      if (!chunks) {
-        return callback('Histogram extraction failed');
+function extractAllColors(image) {
+  return new Promise((resolve, reject) => {
+    // extract histogram
+    // @todo see if this has a promise interface
+    image.stream('histogram', (err, stdout) => {
+      if (err) {
+        return reject(new Error('Unable to extract histogram data'));
       }
 
-      // split pixel data chunks into pixel objects
-      chunks.forEach((chunk) => {
-        // break chunk into important parts
-        parts = /^(\d+):\(([\d,.]+)\)#([A-f0-9]{6})$/.exec(chunk);
-
-        // hex value
-        hex = `#${parts[3]}`;
-
-        // build color
-        const color = buildColorProfile(hex);
-
-        // number of pixels
-        pixels = parseInt(parts[1], 10);
-
-        // organize results
-        colors.push({
-          pixels,
-          luminance: color.luminance,
-          hex,
-          labelHex: color.labelHex,
-          rgb: color.rgb,
-          hsv: color.hsv,
-          hsl: color.hsl,
-          cmyk: color.cmyk,
-          score: {},
-        });
-
+      // capture histogram from a data stream
+      let histogram = '';
+      stdout.addListener('data', (chunk) => {
+        histogram += chunk;
       });
 
-      // color extraction complete
-      return callback(null, colors);
+      // extract color data from histogram
+      stdout.addListener('close', () => {
+        let parts;
+        let hex;
+        let pixels;
+
+        // color objects
+        const colors = [];
+
+        // limit histogram to pixel data
+        histogram = histogram.replace(/\s+/g, '').replace(/^.+?comment=\{([^}]+?)\}.+?$/, '$1');
+
+        // extract pixel data chunks
+        const chunks = histogram.match(/(\d+):\(([\d,.]+)\)#([A-F0-9]{6})/g);
+
+        if (!chunks) {
+          return reject(new Error('Histogram extraction failed'));
+        }
+
+        // split pixel data chunks into pixel objects
+        chunks.forEach((chunk) => {
+          // break chunk into important parts
+          parts = /^(\d+):\(([\d,.]+)\)#([A-f0-9]{6})$/.exec(chunk);
+
+          // hex value
+          hex = `#${parts[3]}`;
+
+          // build color
+          const color = buildColorProfile(hex);
+
+          // number of pixels
+          pixels = parseInt(parts[1], 10);
+
+          // organize results
+          colors.push({
+            pixels,
+            luminance: color.luminance,
+            hex,
+            labelHex: color.labelHex,
+            rgb: color.rgb,
+            hsv: color.hsv,
+            hsl: color.hsl,
+            cmyk: color.cmyk,
+            score: {},
+          });
+        });
+
+        // color extraction complete
+        return resolve(colors);
+      });
     });
   });
 }
@@ -647,74 +645,64 @@ function mergeSimilarColors(colors) {
  * Extract the most prominent colors from an image file
  * _Note: Will return up to 24 prominent colors._
  * @param {String} path
- * @param {Function} callback
+ * @return {Promise<Array>} colors
  */
-function extractProminentColors(path, callback) {
+async function extractProminentColors(path) {
   // convert path to image
-  convertPathToImage(path, (err, image) => {
-    if (err) {
-      return callback(err);
-    }
+  const image = await convertPathToImage(path);
 
-    // set a max color count
-    const maxPaletteColors = 24;
+  // set a max color count
+  const maxPaletteColors = 24;
 
-    // reduce image colors
-    const reducedImage = image.noProfile()
-      .bitdepth(8)
-      .colorspace('YCbCr')
-      .colors(maxPaletteColors)
-      .colorspace('sRGB');
+  // reduce image colors
+  const reducedImage = image.noProfile()
+    .bitdepth(8)
+    .colorspace('YCbCr')
+    .colors(maxPaletteColors)
+    .colorspace('sRGB');
 
-    // extract color data
-    extractAllColors(reducedImage, (err2, colors) => {
-      // unable to extract colors
-      if (err2) {
-        return callback(err2);
-      }
+  // extract color data
+  const colors = await extractAllColors(reducedImage);
 
-      // tally up the pixels
-      let pixels = 0;
-      colors.forEach((color) => {
-        pixels += color.pixels;
-      });
-
-      // calculate pixel percentage
-      colors.forEach((color) => {
-        color.percent = Math.round(((color.pixels / pixels) * 100) * 100) / 100;
-      });
-
-      // assign color families to colors
-      assignColorFamilies(colors, (familyColors) => {
-
-        // merge similar colors together
-        const mergedColors = mergeSimilarColors(familyColors);
-
-        // create color family collection
-        const families = [];
-        mergedColors.forEach((color) => {
-          if (!families.find((family) => family.name === color.family)) {
-            families.push({
-              name: color.family,
-              pixels: 0,
-              percent: 0,
-            });
-          }
-        });
-
-        // apply scores
-        applyCenterColorScore(mergedColors);
-        applyVividColorScore(mergedColors);
-        applyLightColorScore(mergedColors);
-        applyDarkColorScore(mergedColors);
-        applyDensityColorScore(mergedColors);
-        applyFamilyColorScore(mergedColors);
-
-        // prominent color extraction complete
-        callback(null, mergedColors);
-      });
-    });
+  // tally up the pixels
+  let pixels = 0;
+  colors.forEach((color) => {
+    pixels += color.pixels;
   });
+
+  // calculate pixel percentage
+  colors.forEach((color) => {
+    color.percent = Math.round(((color.pixels / pixels) * 100) * 100) / 100;
+  });
+
+  // assign color families to colors
+  const familyColors = assignColorFamilies(colors);
+
+  // merge similar colors together
+  const mergedColors = mergeSimilarColors(familyColors);
+
+  // create color family collection
+  const families = [];
+  mergedColors.forEach((color) => {
+    if (!families.find((family) => family.name === color.family)) {
+      families.push({
+        name: color.family,
+        pixels: 0,
+        percent: 0,
+      });
+    }
+  });
+
+  // apply scores
+  applyCenterColorScore(mergedColors);
+  applyVividColorScore(mergedColors);
+  applyLightColorScore(mergedColors);
+  applyDarkColorScore(mergedColors);
+  applyDensityColorScore(mergedColors);
+  applyFamilyColorScore(mergedColors);
+
+  // prominent color extraction complete
+  return mergedColors;
 }
 
 // export
@@ -731,25 +719,27 @@ module.exports = {
    * ```
    * @param {Array} oldColors
    * @param {String} palettePath
-   * @param {Function} callback
+   * @param {Function} [callback]
+   * @return {Promise<Array>} colors
    */
-  convert: (oldColors, palettePath, callback) => {
-    let palette;
-    let convertedColors;
-    const paletteStats = fs.lstatSync(palettePath);
-    if (!paletteStats.isFile()) {
-      return callback('Palette does not exist');
-    }
+  convert: async (oldColors, palettePath, callback = undefined) => {
     try {
-      palette = JSON.parse(fs.readFileSync(palettePath, 'utf8'));
-      convertedColors = [];
-      oldColors.forEach((oldColor) => {
-        const closestColor = convertToClosestColor(oldColor, palette);
-        convertedColors.push(closestColor);
-      });
-      callback(null, convertedColors);
-    } catch (e) {
-      callback('Invalid JSON');
+      const paletteStats = await fs.lstat(palettePath);
+      if (!paletteStats.isFile()) {
+        throw new Error('Palette does not exist');
+      }
+      const file = await fs.readFile(palettePath, 'utf8');
+      const palette = JSON.parse(file);
+      const convertedColors = oldColors.map((oldColor) => convertToClosestColor(oldColor, palette));
+      if (callback) {
+        callback(null, convertedColors);
+      }
+      return convertedColors;
+    } catch (err) {
+      if (callback) {
+        callback(err);
+      }
+      throw err;
     }
   },
 
@@ -770,15 +760,22 @@ module.exports = {
    * ```
    * @param {String} imagePath
    * @param {Integer} maxColors
-   * @param {Function} callback
+   * @param {Function} [callback]
+   * @return {Promise<Array>} colors
    */
-  extract: (imagePath, maxColors, callback) => {
-    extractProminentColors(imagePath, (err, colors) => {
-      if (err) {
-        return callback(err, colors);
-      }
+  extract: async (imagePath, maxColors, callback = undefined) => {
+    try {
+      const colors = await extractProminentColors(imagePath);
       colors.length = Math.min(colors.length, maxColors);
-      callback(null, colors);
-    });
+      if (callback) {
+        callback(null, colors);
+      }
+      return colors;
+    } catch (err) {
+      if (callback) {
+        callback(err);
+      }
+      throw err;
+    }
   },
 };
