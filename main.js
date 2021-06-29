@@ -572,6 +572,7 @@ function mergeSimilarColors(colors) {
   let distance;
   let color1;
   let color2;
+  let mergedColors = colors;
 
   // set similarity tolerance thresholds
   const toleranceMax = 50;
@@ -579,7 +580,7 @@ function mergeSimilarColors(colors) {
 
   // count total number of pixels
   let pixels = 0;
-  colors.forEach((color) => {
+  mergedColors.forEach((color) => {
     pixels += color.pixels;
   });
 
@@ -599,12 +600,12 @@ function mergeSimilarColors(colors) {
     absorbedColors = [];
 
     // baseline color matrix
-    for (i = colors.length - 1; i > -1; i -= 1) {
-      color1 = colors[i];
+    for (i = mergedColors.length - 1; i > -1; i -= 1) {
+      color1 = mergedColors[i];
 
       // comparison color matrix
-      for (j = colors.length - 1; j > -1; j -= 1) {
-        color2 = colors[j];
+      for (j = mergedColors.length - 1; j > -1; j -= 1) {
+        color2 = mergedColors[j];
 
         // process colors that haven't been through this pass
         if (!absorbedColors.includes(color1.hex) && !absorbedColors.includes(color2.hex)) {
@@ -624,7 +625,7 @@ function mergeSimilarColors(colors) {
 
     // color absorption has run its course
     if (
-      colors.length === (colors.length - absorbedColors.length)
+      mergedColors.length === (mergedColors.length - absorbedColors.length)
       && toleranceThreshold >= toleranceMax
     ) {
       break;
@@ -632,14 +633,14 @@ function mergeSimilarColors(colors) {
 
     // keep the dominant colors
     dominantColors = [];
-    colors.forEach(keepDominantColor);
+    mergedColors.forEach(keepDominantColor);
 
     // reset color base
-    colors = dominantColors;
+    mergedColors = dominantColors;
   }
 
   // done
-  return colors;
+  return mergedColors;
 }
 
 /**
@@ -659,17 +660,17 @@ function extractProminentColors(path, callback) {
     const maxPaletteColors = 24;
 
     // reduce image colors
-    image = image.noProfile()
+    const reducedImage = image.noProfile()
       .bitdepth(8)
       .colorspace('YCbCr')
       .colors(maxPaletteColors)
       .colorspace('sRGB');
 
     // extract color data
-    extractAllColors(image, (err, colors) => {
+    extractAllColors(reducedImage, (err2, colors) => {
       // unable to extract colors
-      if (err) {
-        return callback(err);
+      if (err2) {
+        return callback(err2);
       }
 
       // tally up the pixels
@@ -684,16 +685,15 @@ function extractProminentColors(path, callback) {
       });
 
       // assign color families to colors
-      assignColorFamilies(colors, (colors) => {
+      assignColorFamilies(colors, (familyColors) => {
 
         // merge similar colors together
-        colors = mergeSimilarColors(colors);
+        const mergedColors = mergeSimilarColors(familyColors);
 
         // create color family collection
         const families = [];
-        colors.forEach((color) => {
-          const family = families.find((family) => family.name === color.family);
-          if (!family) {
+        mergedColors.forEach((color) => {
+          if (!families.find((family) => family.name === color.family)) {
             families.push({
               name: color.family,
               pixels: 0,
@@ -703,15 +703,15 @@ function extractProminentColors(path, callback) {
         });
 
         // apply scores
-        applyCenterColorScore(colors);
-        applyVividColorScore(colors);
-        applyLightColorScore(colors);
-        applyDarkColorScore(colors);
-        applyDensityColorScore(colors);
-        applyFamilyColorScore(colors);
+        applyCenterColorScore(mergedColors);
+        applyVividColorScore(mergedColors);
+        applyLightColorScore(mergedColors);
+        applyDarkColorScore(mergedColors);
+        applyDensityColorScore(mergedColors);
+        applyFamilyColorScore(mergedColors);
 
         // prominent color extraction complete
-        callback(null, colors);
+        callback(null, mergedColors);
       });
     });
   });
