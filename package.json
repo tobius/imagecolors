@@ -1,7 +1,7 @@
 {
   "name": "imagecolors",
   "description": "Use a combination of color quantization algorithms and human fiddling to get human perceivable colors out of an image.",
-  "version": "0.12.0",
+  "version": "0.12.1",
   "author": "Toby Miller <toby.miller@tobius.com>",
   "keywords": [
     "color",
