@@ -1,4 +1,4 @@
-/* eslint-disable no-constant-condition */
+/* eslint-disable consistent-return,no-constant-condition */
 
 // modules
 const Color = require('color');
