@@ -1,8 +1,8 @@
 {
   "name": "imagecolors",
-  "description": "Extract human perceivable color data out of an image through a combination of color quantization algorithms and human fiddling.",
-  "version": "0.12.0",
-  "author": "Toby Miller <tobius@tobius.com>",
+  "description": "Use a combination of color quantization algorithms and human fiddling to get human perceivable colors out of an image.",
+  "version": "0.12.1",
+  "author": "Toby Miller <toby.miller@tobius.com>",
   "keywords": [
     "color",
     "graphicsmagick",
@@ -20,22 +20,25 @@
     "url": "git://github.com/tobius/imagecolors.git"
   },
   "dependencies": {
-    "color": "^3.1.2",
-    "color-diff": "^1.1.0",
-    "gm": "^1.23.1",
-    "lodash": "^4.17.15"
+    "color": "^3.1.3",
+    "color-diff": "^1.2.0",
+    "gm": "^1.23.1"
   },
   "devDependencies": {
-    "chai": "^4.2.0",
-    "eslint": "^6.6.0"
+    "chai": "^4.3.4",
+    "depcheck": "^1.4.2",
+    "eslint": "^6.8.0",
+    "eslint-config-airbnb-base": "^14.2.1",
+    "eslint-plugin-import": "^2.23.4",
+    "nodemon": "^2.0.8"
   },
   "scripts": {
-    "start": "node index",
-    "test": "npx mocha -R spec",
-    "lint": "npx eslint . --ext .js --max-warnings=0"
+    "dev": "npx nodemon --exec 'npm run test && npm run lint && node examples/web.js'",
+    "lint": "npx eslint . --ext js",
+    "test": "npx mocha -R spec"
   },
   "engines": {
-    "node": "~12.13.0"
+    "node": "~12.22.1"
   },
   "readmeFilename": "README.md",
   "gitHead": "a228a77cab3cbb4be86469acb3e18a08851c7178",

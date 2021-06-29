@@ -1,84 +1,76 @@
-/*eslint max-nested-callbacks: [0] */
+/* eslint-disable consistent-return */
 
 // express
-var express = require('express'),
-	fs = require('fs'),
-	imagecolors = require('imagecolors'),
-	app = express();
+const express = require('express');
+const fs = require('fs');
+const imagecolors = require('imagecolors');
+
+// init
+const app = express();
 
 // template
-var head = fs.readFileSync(__dirname + '/templates/head.tmpl', 'utf8');
-var foot = fs.readFileSync(__dirname + '/templates/foot.tmpl', 'utf8');
+const head = fs.readFileSync(`${__dirname}/templates/head.tmpl`, 'utf8');
+const foot = fs.readFileSync(`${__dirname}/templates/foot.tmpl`, 'utf8');
 
 // index
-app.get('/', function(req, res) {
+app.get('/', (req, res) => {
+  let i;
 
-	var i, files, menu, photos;
+  // find photos
+  const photos = [];
+  const files = fs.readdirSync(`${__dirname}/public/photos/`);
+  for (i = files.length - 1; i > -1; i -= 1) {
+    if (/\.(gif|jpg|jpeg|png)$/i.test(files[i])) {
+      photos.push(files[i]);
+    }
+  }
 
-	// find photos
-	photos = [];
-	files = fs.readdirSync(__dirname + '/public/photos/');
-	for(i = files.length - 1; i > -1; i -= 1) {
-		if (/\.(gif|jpg|jpeg|png)$/i.test(files[i])) {
-			photos.push(files[i]);
-		}
-	}
+  // generate menu
+  let menu = '';
+  for (i = photos.length - 1; i > -1; i -= 1) {
+    menu += `<li><a href="/example.html?photo=${photos[i]}">${photos[i]}</a></li>`;
+  }
 
-	// generate menu
-	menu = '';
-	for(i = photos.length - 1; i > -1; i -= 1) {
-		menu += '<li><a href="/example.html?photo=' + photos[i] + '">' + photos[i] + '</a></li>';
-	}
-
-	// output
-	res.send(head + '<strong>Examples</strong><ul>' + menu + '</ul>' + foot);
-
+  // output
+  res.send(`${head}<strong>Examples</strong><ul>${menu}</ul>${foot}`);
 });
 
 // examples
-app.get('/example.html', function(req, res) {
-
-	var photo = req.query.photo || null;
-
-	if (photo !== null) {
-
-		// extract image colors
-		imagecolors.extract(__dirname + '/public/photos/' + photo, 5, function(err, colors) {
-
-			if (err) {
-				return res.send(err.message);
-			}
-
-			var body = `<strong>Colors</strong><img src="/photos/${photo}" width="380"/><div class="container">`;
-			colors.forEach(function(color) {
-				body += '<div class="color" data-family="' + color.family +
-					'" data-luminance="' + color.luminance +
-					'" data-pixels="' + color.pixels +
-					'" data-percent="' + color.percent +
-					'" style="color:' + color.labelHex +
-					';background-color:' + color.hex + '">';
-				body += '<strong>' + color.hex + '</strong> ' + color.family + ' family';
-				body += '</div>';
-			});
-			body += '</div><div style="clear:both; height:30px;"></div>';
-			body += '<strong>Output</strong><div class="json">' + JSON.stringify(colors, null, 4) + '</div>';
-			body += '<div style="clear:both;"></div>';
-
-			res.send(head + body + foot);
-
-		});
-
-	} else {
-
-		res.send('unknown photo');
-
-	}
-
+app.get('/example.html', (req, res) => {
+  const photo = req.query.photo || null;
+  if (photo === null) {
+    return res.send('unknown photo');
+  }
+  imagecolors.extract(`${__dirname}/public/photos/${photo}`, 5, (err, colors) => {
+    if (err) {
+      return res.send(err.message);
+    }
+    let body = `<strong>Colors</strong><img src="/photos/${photo}" width="380"/><div class="container">`;
+    colors.forEach((color) => {
+      body += [
+        `<div class="color" data-family="${color.family}"`,
+        ` data-luminance="${color.luminance}"`,
+        ` data-pixels="${color.pixels}"`,
+        ` data-percent="${color.percent}"`,
+        ` style="color:${color.labelHex};background-color:${color.hex}">`,
+        `<strong>${color.hex}</strong> ${color.family} family`,
+        '</div>',
+      ].join('');
+    });
+    body += [
+      '</div><div style="clear:both; height:30px;"></div>',
+      `<strong>Output</strong><div class="json">${JSON.stringify(colors, null, 4)}</div>`,
+      '<div style="clear:both;"></div>',
+    ].join('');
+    res.send(`${head}${body}${foot}`);
+  });
 });
 
 // static
-app.use(express.static(__dirname + '/public'));
+app.use(express.static(`${__dirname}/public`));
 
 // http server
-app.listen(5000);
-
+const port = process.env.PORT || 5000;
+app.listen(port, () => {
+  console.info(`Server listening on port ${port}`);
+});
