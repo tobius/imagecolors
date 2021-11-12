@@ -1,53 +1,33 @@
-
 # Image Colors
 
 Use a combination of color quantization algorithms and human fiddling to get human perceivable colors out of an image.
 
 ## Install
 
-This module depends on ImageMagick.
+This module depends on [ImageMagick](https://imagemagick.org/) and requires [Node.js](https://nodejs.org/) 12+ _(tested on 12, 14, and 16)_.
 
-```shell
+```sh
 [~] brew install imagemagick
 [~] npm i imagecolors
 ```
 
 ## Usage
 
-Usage is pretty straight forward.
-
 ```javascript
-// load module
-var imageColors = require('imagecolors');
-
-/**
- * Extract human perceivable colors from image
- * @param {String} imagePath (file or url)
- * @param {Integer} [colorCount] (default=24)
- * @param {Function} [callback] (optional)
- * @return {Promise<Array>} colors
- */
-imageColors.extract('./photo.jpg')
-	.then(console.log)
-	.catch(console.error);
-
-/**
- * Convert colors to the closest neighbors in a custom color palette
- * @param {Array} colors
- * @param {String} palettePath (file)
- * @param {Function} [callback] (optional)
- * @return {Promise<Array>} colors
- */
-imageColors.convert(colors, './palette.json')
-	.then(console.log)
-	.catch(console.error);
+const imageColors = require('imagecolors');
+async function example() {
+	const extracted = await imageColors.extract('./photo.jpg', 8);
+	const converted = await imageColors.convert(colors, './palette.json');
+	console.log({ extracted, converted });
+}
+example();
 ```
 
 _Note: There are working examples in the `/examples` folder._
 
-## Return Format
+## Format
 
-Returned color objects look like this.
+Returned color objects look like this:
 
 ```javascript
 [{
@@ -63,3 +43,7 @@ Returned color objects look like this.
     family      : 'yellow'
 }]
 ```
+
+## License
+
+This software library is licensed under the [MIT License](https://github.com/tobius/imagecolors/blob/master/LICENSE).
