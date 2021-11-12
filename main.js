@@ -759,11 +759,11 @@ module.exports = {
    * });
    * ```
    * @param {String} imagePath
-   * @param {Integer} maxColors
+   * @param {Integer} [maxColors] (default = 24)
    * @param {Function} [callback]
    * @return {Promise<Array>} colors
    */
-  extract: async (imagePath, maxColors, callback = undefined) => {
+  extract: async (imagePath, maxColors = 24, callback = undefined) => {
     try {
       const colors = await extractProminentColors(imagePath);
       colors.length = Math.min(colors.length, maxColors);
