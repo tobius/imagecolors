@@ -4,7 +4,7 @@
   "description": "This folder contains imageColors usage examples.",
   "main": "web.js",
   "dependencies": {
-    "express": "^4.17.1",
+    "express": "^4.18.2",
     "imagecolors": "file:../"
   },
   "devDependencies": {},
